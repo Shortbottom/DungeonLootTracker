@@ -1,0 +1,8 @@
+## Interface: 100205
+## Title: Dungeon Loot Tracker
+## Notes: Tracking items picked in Dungeon and easily sell them.
+## SavedVariablesPerCharacter: DLTHistory 
+## Author: Shortbottom
+## Version: 0.0.1
+
+MainFrame.xml
