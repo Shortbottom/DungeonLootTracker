@@ -5,4 +5,4 @@
 ## Author: Shortbottom
 ## Version: 0.0.1
 
-MainFrame.xml
+MainWindow.xml
