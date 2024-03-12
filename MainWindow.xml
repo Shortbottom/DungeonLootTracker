@@ -1,0 +1,63 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <Frame name="DLT_MainWindow" frameStrata="DIALOG" frameLevel="10" enableMouse="true" movable="true" hidden="false" parent="UIParent" inherits="BackdropTemplate">
+        <Size X="200" y="300" />
+        <KeyValues>
+            <KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
+            <KeyValue key="backdropBorderColor" value="LEGENDARY_ORANGE_COLOR" type="global"/>
+            <KeyValue key="backdropBorderColorAlpha" value="1" type="number"/>
+        </KeyValues>
+        <Anchors>
+            <Anchor point="LEFT" />
+        </Anchors>
+        <Layers>
+            <Layer>
+                <FontString name="AddonTitle" font="Fonts\FRIZQT__.TTF" text="Dungeon Loot Tracker" justifyH="LEFT" justifyV="TOP">
+                    <Color r="0.8" g="0.8" b="0.8" a="1"/>
+                    <FontHeight val="13"/>
+                    <Anchors>
+                        <Anchor point="TOPLEFT" relativeTo="$parent" x="15" y="-15" />
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Frames>
+            <Button>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativeTo="$parent" relativePoint="TOPRIGHT" x="-4" y="-4" />
+                </Anchors>
+                <Size x="15" y="15" />
+                <Layers>
+                    <Layer>
+                        <FontString name="CloseButton" font="Fonts\FRIZQT__.TTF" text="X" justifyH="LEFT" justifyV="TOP">
+                            <Color r="0.8" g="0.8" b="0.8" a="1"/>
+                            <FontHeight val="13"/>
+                        </FontString>
+                    </Layer>
+                </Layers>
+                <Scripts>
+                    <OnClick>
+						self:GetParent():Hide()
+                    </OnClick>
+                </Scripts>
+            </Button>
+        </Frames>
+        <Scripts>
+            <OnLoad inherit="prepend">
+				self:RegisterForDrag("LeftButton")
+            </OnLoad>
+            <OnDragStart>
+				if self:IsMovable() then
+					self:StartMoving();
+				end
+            </OnDragStart>
+            <OnDragStop>
+				if self:IsMovable() then
+					self:StopMovingOrSizing();
+				end
+            </OnDragStop>
+        </Scripts>
+
+    </Frame>
+</Ui>
