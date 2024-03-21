@@ -1,1 +1,5 @@
 .code/
+.vscode/
+.*/InstanceLootManager/
+.*/Interface/
+.*/Journalator*/

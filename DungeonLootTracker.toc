@@ -4,7 +4,9 @@
 ## SavedVariables: dltDB
 ## Author: Shortbottom
 ## Version: 0.0.1
+## OptionalDeps: Ace3
 
 embeds.xml
 
+MainWindow.xml
 Core.lua

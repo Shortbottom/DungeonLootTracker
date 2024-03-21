@@ -1,63 +1,79 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.blizzard.com/wow/ui/ https://raw.githubusercontent.com/Gethe/wow-ui-source/live/Interface/FrameXML/UI_shared.xsd">
 
-    <Frame name="DLT_MainWindow" frameStrata="DIALOG" frameLevel="10" enableMouse="true" movable="true" hidden="false" parent="UIParent" inherits="BackdropTemplate">
-        <Size X="200" y="300" />
-        <KeyValues>
-            <KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global"/>
-            <KeyValue key="backdropBorderColor" value="LEGENDARY_ORANGE_COLOR" type="global"/>
-            <KeyValue key="backdropBorderColorAlpha" value="1" type="number"/>
-        </KeyValues>
+    <FontString name="DLT_BaseFont" inherits="GameFontNormal" justifyH="CENTER" virtual="true">
+        <FontHeight val="8" />
+    </FontString>
+
+    <Frame name="DLT_Parent_" movable="true" resizable="false" enableMouse="true"
+        clampedToScreen="true" inherits="InsetFrameTemplate">
+        <Size>
+            <AbsDimension x="115" y="40" />
+        </Size>
         <Anchors>
-            <Anchor point="LEFT" />
+            <Anchor point="CENTER" />
         </Anchors>
         <Layers>
-            <Layer>
-                <FontString name="AddonTitle" font="Fonts\FRIZQT__.TTF" text="Dungeon Loot Tracker" justifyH="LEFT" justifyV="TOP">
-                    <Color r="0.8" g="0.8" b="0.8" a="1"/>
-                    <FontHeight val="13"/>
+            <Layer level="BACKGROUND" textureSubLevel="-5">
+                <Texture parentKey="Bg" file="Interface\FrameGeneral\UI-Background-Marble"
+                    horizTile="true" vertTile="true" setAllPoints="true" />
+            </Layer>
+            <Layer level="OVERLAY">
+                <FontString name="$parentAddonTitle" parentKey="Text" inherits="SystemFont_Tiny2"
+                    text="Dungeon Loot Tracker" justifyH="LEFT" justifyV="TOP">
                     <Anchors>
-                        <Anchor point="TOPLEFT" relativeTo="$parent" x="15" y="-15" />
+                        <Anchor point="TOPLEFT" relativeTo="DLT_Parent_" x="5" y="-5" />
                     </Anchors>
                 </FontString>
             </Layer>
         </Layers>
+
         <Frames>
-            <Button>
-                <Anchors>
-                    <Anchor point="TOPRIGHT" relativeTo="$parent" relativePoint="TOPRIGHT" x="-4" y="-4" />
-                </Anchors>
+            <Button name="$parentCloseBtn" inherits="UIPanelCloseButtonNoScripts"
+                parent="DLT_Parent_">
                 <Size x="15" y="15" />
-                <Layers>
-                    <Layer>
-                        <FontString name="CloseButton" font="Fonts\FRIZQT__.TTF" text="X" justifyH="LEFT" justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1"/>
-                            <FontHeight val="13"/>
-                        </FontString>
-                    </Layer>
-                </Layers>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativeTo="DLT_Parent_" x="0" y="0" />
+                </Anchors>
+                <DisabledTexture atlas="RedButton-Exit-Disabled" />
+                <NormalTexture atlas="RedButton-Exit" />
+                <PushedTexture atlas="RedButton-exit-pressed" />
+                <HighlightTexture atlas="RedButton-Highlight" alphaMode="ADD" />
                 <Scripts>
-                    <OnClick>
-						self:GetParent():Hide()
-                    </OnClick>
+                    <OnClick>self:GetParent():Hide()</OnClick>
                 </Scripts>
             </Button>
         </Frames>
-        <Scripts>
-            <OnLoad inherit="prepend">
-				self:RegisterForDrag("LeftButton")
-            </OnLoad>
-            <OnDragStart>
-				if self:IsMovable() then
-					self:StartMoving();
-				end
-            </OnDragStart>
-            <OnDragStop>
-				if self:IsMovable() then
-					self:StopMovingOrSizing();
-				end
-            </OnDragStop>
-        </Scripts>
+        <Frames>
+            <Button name="$parentToggleRecordingBtn" parent="DLT_Parent_">
+                <Size x="16" y="16" />
+                <Anchors>
+                    <Anchor point="BOTTOMLEFT" relativeTo="DLT_Parent_" x="5" y="5" />
+                </Anchors>
+                <NormalTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Up" />
+                <HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD" />
+                <Scripts>
+                    <OnClick>DLTAddOn:ToggleRecording_OnClick(self)</OnClick>
+                </Scripts>
+            </Button>
+            <Button name="$parentReportWindowBtn" text="Report" parent="DLT_Parent_"
+                inherits="GameMenuButtonTemplate">
+                <Size x="24" y="24" />
+                <Anchors>
+                    <Anchor point="LEFT" relativeTo="DLT_Parent_ToggleRecordingBtn" x="5" y="5" />
+                </Anchors>
+            </Button>
+        </Frames>
 
+        <Scripts>
+            <OnMouseDown>
+                self:StartMoving()
+            </OnMouseDown>
+            <OnMouseUp>
+                self:StopMovingOrSizing()
+            </OnMouseUp>
+        </Scripts>
     </Frame>
+
 </Ui>
