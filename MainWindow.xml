@@ -1,13 +1,26 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.blizzard.com/wow/ui/ https://raw.githubusercontent.com/Gethe/wow-ui-source/live/Interface/FrameXML/UI_shared.xsd">
-
-    <FontString name="DLT_BaseFont" inherits="GameFontNormal" justifyH="CENTER" virtual="true">
-        <FontHeight val="8" />
-    </FontString>
+    <FontFamily name="DLT_ButtonText" virtual="true">
+        <Member alphabet="roman">
+            <Font font="Fonts\FRIZQT__.TTF" height="6" />
+        </Member>
+        <Member alphabet="korean">
+            <Font font="Fonts\2002.ttf" height="9" />
+        </Member>
+        <Member alphabet="simplifiedchinese">
+            <Font font="Fonts\ARKai_T.ttf" height="8" />
+        </Member>
+        <Member alphabet="traditionalchinese">
+            <Font font="Fonts\blei00d.TTF" height="8" />
+        </Member>
+        <Member alphabet="russian">
+            <Font font="Fonts\FRIZQT___CYR.TTF" height="8" />
+        </Member>
+    </FontFamily>
 
     <Frame name="DLT_Parent_" movable="true" resizable="false" enableMouse="true"
-        clampedToScreen="true" inherits="InsetFrameTemplate">
+        clampedToScreen="true" parent="UIParent" inherits="InsetFrameTemplate" scale="1">
         <Size>
             <AbsDimension x="115" y="40" />
         </Size>
@@ -41,7 +54,9 @@
                 <PushedTexture atlas="RedButton-exit-pressed" />
                 <HighlightTexture atlas="RedButton-Highlight" alphaMode="ADD" />
                 <Scripts>
-                    <OnClick>self:GetParent():Hide()</OnClick>
+                    <OnClick>
+                        self:GetParent():Hide()
+                    </OnClick>
                 </Scripts>
             </Button>
         </Frames>
@@ -51,18 +66,25 @@
                 <Anchors>
                     <Anchor point="BOTTOMLEFT" relativeTo="DLT_Parent_" x="5" y="5" />
                 </Anchors>
-                <NormalTexture file="Interface\Buttons\UI-SpellbookIcon-NextPage-Up" />
-                <HighlightTexture file="Interface\Buttons\UI-Common-MouseHilight" alphaMode="ADD" />
+                <NormalTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-Up" />
+                <HighlightTexture
+                    file="Interface\Addons\DungeonLootTracker\Images\UI-Common-MouseHilight"
+                    alphaMode="ADD" />
+                <PushedTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-Down" />
                 <Scripts>
                     <OnClick>DLTAddOn:ToggleRecording_OnClick(self)</OnClick>
                 </Scripts>
             </Button>
-            <Button name="$parentReportWindowBtn" text="Report" parent="DLT_Parent_"
-                inherits="GameMenuButtonTemplate">
-                <Size x="24" y="24" />
+            <Button name="$parentReportWindowBtn" text="R" parent="DLT_Parent_">
+                <Size x="14" y="14" />
                 <Anchors>
-                    <Anchor point="LEFT" relativeTo="DLT_Parent_ToggleRecordingBtn" x="5" y="5" />
+                    <Anchor point="LEFT" relativePoint="RIGHT"
+                        relativeTo="DLT_Parent_ToggleRecordingBtn" x="0" y="0" />
                 </Anchors>
+                <NormalTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-List" />
+                <HighlightTexture
+                    file="Interface\Addons\DungeonLootTracker\Images\UI-Common-MouseHilight"
+                    alphaMode="ADD" />
             </Button>
         </Frames>
 

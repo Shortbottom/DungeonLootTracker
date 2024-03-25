@@ -1,12 +1,16 @@
 ## Interface: 100205
 ## Title: Dungeon Loot Tracker
+## X-Acronym: DLT
 ## Notes: Tracking items picked in Dungeon and easily sell them.
 ## SavedVariables: dltDB
 ## Author: Shortbottom
-## Version: 0.0.1
-## OptionalDeps: Ace3
+## Version: 00.01.00
+## IconTexture: Interface/AddOns/DungeonLootTracker/Images/icon
 
-embeds.xml
+Libs\includes.xml
 
-MainWindow.xml
+Options\includes.xml
+
+init.lua
 Core.lua
+MainWindow.xml
