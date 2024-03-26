@@ -1,3 +1,11 @@
-.code/
-.vscode/
-.InstanceLootManager
+.env
+format.bat
+**/desktop.ini
+.DS_Store
+.release
+.install
+.lua/*
+.vscode
+CHANGELOG.MD
+DungeonLootTracker/Libs/
+.backups 
