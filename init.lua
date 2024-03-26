@@ -5,13 +5,11 @@ local addonName, addon = ...
 -- TODO: We should do the localisation here
 -- TODO: Localisation End
 
-addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0")
+addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "Shorty_Util")
 AceConfig = LibStub("AceConfig-3.0")
 AceConfigDialog = LibStub("AceConfigDialog-3.0")
 AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 AceDBOpt = LibStub("AceDBOptions-3.0")
-
-print(addon.Util)
 
 local icon = LibStub("LibDBIcon-1.0")
 
@@ -112,7 +110,9 @@ local dltLDB = LibStub("LibDataBroker-1.1"):NewDataObject(addonName, {
     type    = "data source",
     text    = "Dungeon Loot Tracker",
     icon    = addon.Icon,
-    OnClick = function(self, button) addon.Minimap.minimap_Click(self, button) end,
+    OnClick = function(self, button)
+        addon:minimap_Click(addon.Title, button)
+    end,
 })
 
 
@@ -122,7 +122,7 @@ function addon:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("dltDB", defaults, profile)
 
     AceConfig:RegisterOptionsTable(addon.Title, generalOptions)
-    AceConfigDialog:AddToBlizOptions(addon.Title, addon.Title, nil)
+    local _, catID = AceConfigDialog:AddToBlizOptions(addon.Title, addon.Title, nil)
 
     AceConfig:RegisterOptionsTable(addon.Acronym .. "_Recording", recordingOptions)
     AceConfigDialog:AddToBlizOptions(addon.Acronym .. "_Recording", "Recording Options", addon.Title)
@@ -151,9 +151,9 @@ function addon:OnEnable()
     -- Load the Minimap Button
     icon:Register(addonName .. "_Minimap", dltLDB, self.db.profile.minimap)
 
-    self.db.RegisterCallback(self, "OnProfileChanged", "Util.RefreshConfig")
-    self.db.RegisterCallback(self, "OnProfileCopied", addon.RefreshConfig)
-    self.db.RegisterCallback(self, "OnProfileReset", addon.RefreshConfig)
+    self.db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileCopied", "RefreshConfig")
+    self.db.RegisterCallback(self, "OnProfileReset", "RefreshConfig")
 end
 
 function addon:OnDisable()
@@ -177,5 +177,26 @@ function addon:slashCommand(msg)
         self:Print(helpMsg)
     else
         self:Print(msg)
+    end
+end
+
+function addon:minimap_Click(title, button)
+    if button == "LeftButton" then
+        lib.toggleWindow()
+    elseif button == "RightButton" then
+        if addon.IsWrathClassic then
+            InterfaceAddOnsList_Update(); -- This way the correct category will be shown when calling InterfaceOptionsFrame_OpenToCategory
+            InterfaceOptionsFrame_OpenToCategory(title);
+            for _, button in next, InterfaceOptionsFrameAddOns.buttons do
+                if button.element and button.element.name == title and button.element.collapsed then
+                    OptionsListButtonToggle_OnClick(button.toggle);
+                    break;
+                end
+            end
+            return;
+        end
+
+        Settings.GetCategory(title).expanded = true
+        Settings.OpenToCategory(title, true)
     end
 end

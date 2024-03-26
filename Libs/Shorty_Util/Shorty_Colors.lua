@@ -1,6 +1,11 @@
-local addonName, addon = ...
-addon.Util.Colors = {}
-local colors = addon.Util.Colors
+local lib = LibStub("Shorty_Util")
+
+if not lib then
+    return
+end
+
+lib.Colors = {}
+local colors = lib.Colors
 
 colors.AllianceBlueRGB = { R = 0.290, G = 0.329, B = 0.910, A = 1.000 } -- "|cff4a54e8" PLAYER_FACTION_COLOR_ALLIANCE
 colors.HordeRedRGB = { R = 0.898, G = 0.051, B = 0.071, A = 1.000 }     -- "|cffe50d12" PLAYER_FACTION_COLOR_HORDE
@@ -44,5 +49,5 @@ for colorName, color in next, colors do
     end
 end
 
-addon.Util.DeepCopyTable(tmpColors, colors);
+lib.DeepCopyTable(tmpColors, colors);
 tmpColors = nil;
