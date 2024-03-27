@@ -12,6 +12,9 @@
 ## X-Category: Bags & Inventory
 ## OptionalDeps: Ace3
 
+# Load external libraries
+embeds.xml
+
 MyLib\includes.xml
 
 Options\includes.xml

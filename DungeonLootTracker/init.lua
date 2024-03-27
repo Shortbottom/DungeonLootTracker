@@ -1,14 +1,13 @@
 -- INFO: addonName is the name of the AddOn folder; in this case DungeonLootTracker
 -- INFO: addon is the name of a Table that is shared for all files in this addon - can hole simple variables or functions
 local addonName, addon = ...
-
+print(addon)
 -- TODO: We should do the localisation here
 -- TODO: Localisation End
 
 addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "Shorty_Util")
 local AceConfig = LibStub("AceConfig-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 local AceDBOpt = LibStub("AceDBOptions-3.0")
 
 local icon = LibStub("LibDBIcon-1.0")
@@ -126,7 +125,7 @@ function addon:OnInitialize()
   self.db = LibStub("AceDB-3.0"):New("dltDB", defaults, profile)
 
   AceConfig:RegisterOptionsTable(addon.Title, generalOptions)
-  local _, catID = AceConfigDialog:AddToBlizOptions(addon.Title, addon.Title, nil)
+  AceConfigDialog:AddToBlizOptions(addon.Title, addon.Title, nil)
 
   AceConfig:RegisterOptionsTable(addon.Acronym .. "_Recording", recordingOptions)
   AceConfigDialog:AddToBlizOptions(addon.Acronym .. "_Recording", "Recording Options", addon.Title)
@@ -145,7 +144,8 @@ function addon:OnInitialize()
 
   -- NOTE: Doesn't really matter but set the default to be not recording;
   -- NOTE: This is just to ensure that the key is set to a value and isn't left as null
-  DLT_Parent_ToggleRecordingBtn.recording = false
+  local f = _G["DLT_Parent_ToggleRecordingBtn"]
+  f.recording = false
 end
 
 function addon:OnEnable()
@@ -186,7 +186,7 @@ end
 
 function addon:minimap_Click(title, button)
   if button == "LeftButton" then
-    lib.toggleWindow()
+    addon.toggleWindow()
   elseif button == "RightButton" then
     if addon.IsWrathClassic then
       InterfaceAddOnsList_Update() -- This way the correct category will be shown when calling InterfaceOptionsFrame_OpenToCategory
