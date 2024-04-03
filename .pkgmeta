@@ -17,11 +17,9 @@ externals:
   Libs/LibUIDropDownMenu: https://repos.wowace.com/wow/libuidropdownmenu/trunk/LibUIDropDownMenu
   Libs/LibDBIcon-1.0: https://repos.curseforge.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
 
-enable-nolib-creation: no
-
-# manual-changelog:
-#   filename: CHANGELOG.md
-#   markup-type: markdown
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
 
 ignore:
   - .github
@@ -30,6 +28,3 @@ ignore:
 
 plain-copy:
   - Images
-
-move-folders:
-  DungeonLootTracker2/DungeonLootTracker: DungeonLootTracker
