@@ -1,0 +1,35 @@
+## Interface: 100206
+## Version: @project-version@
+## Title: Dungeon Loot Tracker
+## Notes: Tracking items picked in Dungeon and easily sell them.
+## SavedVariables: dltDB
+## Author: Shortbottom
+## IconTexture: Interface\AddOns\DungeonLootTracker\Images\icon
+## X-Acronym: DLT
+## X-Curse-Project-ID: 974205
+## X-Wago-ID: nGvpze6x
+## X-Flavor: Mainline
+## X-Category: Bags & Inventory
+## OptionalDeps: Ace3
+
+# Load external libraries
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+Libs\AceHook-3.0\AceHook-3.0.xml
+Libs\AceConsole-3.0\AceConsole-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceConfig-3.0\AceConfig-3.0.xml
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.xml
+
+boot.lua
+
+Options\includes.xml
+
+init.lua
+
+# Core.lua
+MainWindow.xml

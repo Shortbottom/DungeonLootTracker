@@ -1,11 +1,11 @@
 .env
 format.bat
 **/desktop.ini
+.backups
 .DS_Store
 .release
 .install
-.lua/*
 .vscode
+annotations.lua
 CHANGELOG.MD
-DungeonLootTracker/Libs/
-.backups 
+DungeonLootTracker/Libs
