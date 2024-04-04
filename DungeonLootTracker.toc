@@ -27,6 +27,7 @@ Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\LibDBIcon-1.0.xml
 
 core\boot.lua
+core\Shorty_Util.lua
 core\events.lua
 core\metadata.lua
 core\localisation.lua
@@ -36,6 +37,8 @@ core\database.lua
 core\hooks.lua
 core\minimap.lua
 
+Options\general.lua
+Options\minimap.lua
 Options\options.lua
 
 init.lua

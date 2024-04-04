@@ -37,32 +37,6 @@ const.DATABASE_DEFAULTS = {
   char = {}
 }
 
----@type AceConfig.OptionsTable
-local mainOptions = {
-  type = "group",
-  name = L:G("Minimap"),
-  handler = addon,
-  args = {
-    info = {
-      type = "header",
-      name = "",
-      desc = ""
-    },
-    showMinimapBtn = {
-      type = "toggle",
-      name = "Show Minimap Button",
-      desc = "Show/Hide the Minimap Button.",
-      get = function () minimap:GetShowMinimap() end,
-      set = function () minimap:SetShowMinimap() end
-    },
-    lockMinimapBtn = {
-      type = "toggle",
-      name = "Lock Minimap Button",
-      desc = "Lock the position of the minimap button.",
-      get = function (_)
-        return addon.db.profile.minimap.lock
-      end,
-      set = "setLockMinimap"
-    }
-  }
-}
+
+---@type string Name of the minimap button
+const.miniMapBtnName = addon.Metadata.Acronym .. "_MinimapBtn"

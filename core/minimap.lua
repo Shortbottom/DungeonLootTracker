@@ -9,11 +9,14 @@ local const = addon:GetModule("Constants")
 ---@class MainFrame: AceModule
 local mainFrame = addon:GetModule("MainFrame")
 
----@class Icon: AceAddon
-local icon = LibStub("LibDBIcon-1.0")
+---@class Database: AceModule
+local DB = addon:GetModule("Database")
 
 ---@class Minimap: AceModule
 local minimap = addon:NewModule("Minimap")
+
+---@class Icon: AceAddon
+local icon = LibStub("LibDBIcon-1.0")
 
 --- Setup the LDB Data Object for the minimap icon
 ---@type table
@@ -28,7 +31,7 @@ local dltLDB = LibStub("LibDataBroker-1.1"):NewDataObject(addon.Metadata.AddonNa
 
 function minimap:OnInitialize()
   -- Load the Minimap Button
-  minimap:LoadMinimapBtn()
+  icon:Register(const.miniMapBtnName, dltLDB, DB:GetData().profile.minimap)
 end
 
 ---Event Handler: MouseClick on the minimap button. Left/Right clicks do different things
@@ -43,21 +46,29 @@ end
 
 ---Open the options window
 function minimap:openOptions()
-  if addon.IsWrathClassic then
-    InterfaceAddOnsList_Update() -- This way the correct category will be shown when calling InterfaceOptionsFrame_OpenToCategory
-    InterfaceOptionsFrame_OpenToCategory(self)
-    for _, btn in next, InterfaceOptionsFrameAddOns.buttons do
-      if btn.element and btn.element.name == self and btn.element.collapsed then
-        OptionsListButtonToggle_OnClick(btn.toggle)
-        break
-      end
-    end
-    return
-  end
-  _G["Settings"].GetCategory(addon.optionsCategoryName).expanded = true
-  _G["Settings"].OpenToCategory(addon.optionsCategoryName, true)
+  LibStub("AceConfigDialog-3.0"):Open(addonName)
 end
 
-function minimap:LoadMinimapBtn()
-  icon:Register(addon.Metadata.Acronym .. "_MinimapBtn", dltLDB, addon.db.profile.minimap)
+---Lock the minimap button
+function minimap:Lock()
+  icon:Lock(const.miniMapBtnName)
+end
+
+---Unlock the minimap button
+function minimap:Unlock()
+  icon:Unlock(const.miniMapBtnName)
+end
+
+---Show the minimap button
+function minimap:Show()
+  icon:Show(const.miniMapBtnName)
+end
+
+---Hide the minimap button
+function minimap:Hide()
+  icon:Hide(const.miniMapBtnName)
+end
+
+function minimap:SetPosition(arg)
+  icon:Refresh(const.miniMapBtnName, DB:GetData().profile.minimap)
 end

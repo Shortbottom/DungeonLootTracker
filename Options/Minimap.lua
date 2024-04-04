@@ -1,87 +1,78 @@
--- This contains all the functions that will be used within the Options-Minimap section
-local addonName, DLT_Addon = ...
-local DLT_Minimap = LibStub:NewLibrary("DLT_Minimap", 10)
+local addonName = ... ---@type string
 
-if not DLT_Minimap then
-  return
-end
+---@class DLT_Addon: AceAddon
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
-DLT_Minimap.embeds = DLT_Minimap.embeds or {}
+---@class Database: AceModule
+local DB = addon:GetModule("Database")
 
-DLT_Addon.MinimapBtnName = addonName .. "_Minimap"
+---@class Localisation: AceModule
+local L = addon:GetModule("Localisation")
 
-local icon = LibStub("LibDBIcon-1.0")
+---@class Minimap: AceModule
+local minimap = addon:GetModule("Minimap")
 
-function DLT_Minimap:LoadMinimapBtn()
-  --- Setup the LDB Data Object for the minimap icon
-  ---@type table
-  local dltLDB =
-      LibStub("LibDataBroker-1.1"):NewDataObject(
-        addonName,
-        {
-          type = "data source",
-          text = "Dungeon Loot Tracker",
-          icon = "DungeonLootTracker\\Images\\icon.jpeg",
-          OnClick = function (_, button)
-            DLT_Addon.minimap_Click(_, button)
+---@class Constants: AceModule
+local const = addon:GetModule("Constants")
+
+---@class MinimapOptions: AceModule
+local minimapOptions = addon:NewModule("MinimapOptions")
+
+---@type AceConfig.OptionsTable
+function minimapOptions:GetMinimapOptions()
+  local options = {
+    handler = addon,
+    type = "group",
+    name = L:G("Minimap"),
+    order = 2,
+    args = {
+      hide = {
+        type = "toggle",
+        name = "Hide Minimap Button",
+        desc = "Show/Hide the Minimap Button.",
+        order = 1,
+        get = function () return DB:GetMinimapHide() end,
+        set = function (_, enabled)
+          DB:SetMinimapHide(enabled)
+          if enabled then
+            minimap:Hide()
+          else
+            minimap:Show()
           end
-        }
-      )
+        end
+      },
+      lock = {
+        type = "toggle",
+        name = "Lock Minimap Button",
+        desc = "Lock the position of the minimap button.",
+        order = 2,
+        get = function () return DB:GetMinimapLock() end,
+        set = function (_, enabled)
+          DB:SetMinimapLock(enabled)
+          if enabled then
+            minimap:Lock()
+          else
+            minimap:Unlock()
+          end
+        end
+      },
+      radius = {
+        type = "range",
+        name = "Button Position",
+        desc = "Position of the button round the minimap",
+        order = 3,
+        min = 0,
+        max = 360,
+        step = 1,
+        get = function () return DB:GetMinimapPos() end,
+        set = function (_, value)
+          DB:SetMinimapPos(value)
+          minimap:SetPosition(value)
+        end
+      }
+    }
+  }
+  return options
 end
 
--- Option Functions
-
--- CAUTION: LibDBIcon option to hide or show the minimap icon is a hide flag and we want to refer to it as a show flag
--- CAUTION: so when the user says to Show we need to store false in the settings table
-
-function DLT_Minimap:GetShowMinimap()
-  return not self.db.profile.minimap.hide
-end
-
---- Show/Hide the minimap button. Library uses a hide flag, we use a show flag so swap it over <br>
---- e.g. If value is true we need to store false. False = user wants to show the button; True = user wants to hide the button
----@param value boolean
-function DLT_Minimap:SetShowMinimap(value)
-  print("dddd")
-  if value then
-    self.db.profile.minimap.hide = false
-    icon:Show(self.MinimapBtnName)
-  else
-    self.db.profile.minimap.hide = true
-    icon:Hide(self.MinimapBtnName)
-  end
-end
-
--- INFO: LibDBIcon's option to lock the minimap is a lock flag which matches with the user setting so no need to reverse it
----Store the setting for locking the position of the minimap button
----@param val boolean
-function DLT_Minimap:SetLockMinimap(val)
-  self.db.profile.minimap.lock = val
-  if val then
-    icon:Lock(self.Metadata.AddonName .. "_Minimap")
-  else
-    icon:Unlock(self.Metadata.AddonName .. "_Minimap")
-  end
-  self.RefreshConfig()
-end
-
-local mixins = {
-  "LoadMinimapBtn",
-  "GetShowMinimap",
-  "SetShowMinimap",
-  "SetLockMinimap"
-}
-
--- Embeds AceConsole into the target object making the functions from the mixins list available on target:..
--- @param target target object to embed AceBucket in
-function DLT_Minimap:Embed(target)
-  for k, v in pairs(mixins) do
-    target[v] = self[v]
-  end
-  self.embeds[target] = true
-  return target
-end
-
-for addon in pairs(DLT_Minimap.embeds) do
-  DLT_Minimap:Embed(addon)
-end
+minimapOptions:Enable()
