@@ -27,3 +27,10 @@ Some features I plan to include:
 - A way of keeping an item if you don't currently have it in your collection
 
 - Option to keep trade skill items/reagents
+
+#### Where to get this addon
+
+---
+
+- [Wago Addons](https://addons.wago.io/addons/dungeon-loot-tracker)
+- [Curse](https://www.curseforge.com/wow/addons/dungeon-loot-tracker)
