@@ -61,20 +61,6 @@ function metadata.GetAddOnMetadata(addonName)
   }
 end
 
----Show/Hide a frame
----@param name string # Name of a frame as a string
-function lib:toggleWindow(name)
-  local f = _G[name]
-  if f == nil then
-    return
-  end
-  if f:IsShown() == true then
-    f:Hide()
-  else
-    f:Show()
-  end
-end
-
 ---Iterates through a table and prints its
 ---@param tbl table
 function lib:tprint(tbl)

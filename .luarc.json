@@ -1,5 +1,7 @@
 {
-    "addonManager.enable": false,
+    "runtime": {
+        "version": "Lua 5.1"
+    },
     "hint": {
         "setType": true,
         "semicolon": "Disable"
@@ -9,9 +11,33 @@
         "unusedLocalExclude": [
             "_*"
         ],
-        "ignoredFiles": "Opened",
-        "libraryFiles": "Opened",
-        "workspaceEvent": "OnSave"
+        "ignoredFiles": "Disable",
+        "libraryFiles": "Disable",
+        "workspaceEvent": "OnSave",
+        "groupFileStatus": {
+            "strong": "Any",
+            "strict": "Any",
+            "type-check": "Any",
+            "luadoc": "Any",
+            "unused": "Any",
+            "unbalanced": "Any",
+            "redefined": "Any",
+            "ambiguity": "Any",
+            "duplicate": "Any",
+            "codestyle": "None"
+        },
+        "groupSeverity": {
+            "strict": "Error",
+            "unbalanced": "Error",
+            "redefined": "Error",
+            "strong": "Error",
+            "type-check": "Error",
+            "ambiguity": "Error",
+            "unused": "Warning",
+            "duplicate": "Error",
+            "luadoc": "Warning",
+            "codestyle": "Information"
+        }
     },
     "workspace": {
         "library": [
@@ -31,6 +57,9 @@
         "C_AddOns",
         "PlaySound",
         "SOUNDKIT",
-        "char"
+        "char",
+        "WOW_PROJECT_ID",
+        "WOW_PROJECT_MAINLINE",
+        "WOW_PROJECT_CLASSIC"
     ]
 }

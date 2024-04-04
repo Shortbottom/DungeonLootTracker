@@ -1,465 +1,104 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.blizzard.com/wow/ui/ https://raw.githubusercontent.com/Gethe/wow-ui-source/live/Interface/FrameXML/UI_shared.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.blizzard.com/wow/ui/ https://raw.githubusercontent.com/Gethe/wow-ui-source/live/Interface/FrameXML/UI_shared.xsd">
+  <FontFamily name="DLT_ButtonText" virtual="true">
+    <Member alphabet="roman">
+      <Font font="Fonts\FRIZQT__.TTF" height="6" />
+    </Member>
+    <Member alphabet="korean">
+      <Font font="Fonts\2002.ttf" height="9" />
+    </Member>
+    <Member alphabet="simplifiedchinese">
+      <Font font="Fonts\ARKai_T.ttf" height="8" />
+    </Member>
+    <Member alphabet="traditionalchinese">
+      <Font font="Fonts\blei00d.TTF" height="8" />
+    </Member>
+    <Member alphabet="russian">
+      <Font font="Fonts\FRIZQT___CYR.TTF" height="8" />
+    </Member>
+  </FontFamily>
 
-    <Frame name="DLT_MainWindow" enableMouse="true"
-        movable="true" hidden="false" parent="UIParent">
-        <Size x="200" y="300" />
-        <KeyValues>
-            <KeyValue key="backdropInfo" value="BACKDROP_DIALOG_32_32" type="global" />
-            <KeyValue key="backdropBorderColor" value="" type="global" />
-            <KeyValue key="backdropBorderColorAlpha" value="0" type="number" />
-        </KeyValues>
+  <Frame name="DLT_Parent_" movable="true" resizable="false" enableMouse="true"
+    clampedToScreen="true" parent="UIParent" inherits="InsetFrameTemplate" scale="1">
+    <Size>
+      <AbsDimension x="115" y="40" />
+    </Size>
+    <Anchors>
+      <Anchor point="CENTER" />
+    </Anchors>
+    <Layers>
+      <Layer level="BACKGROUND" textureSubLevel="-5">
+        <Texture parentKey="Bg" file="Interface\FrameGeneral\UI-Background-Marble"
+          horizTile="true" vertTile="true" setAllPoints="true" />
+      </Layer>
+      <Layer level="OVERLAY">
+        <FontString name="$parentAddonTitle" parentKey="Text" inherits="SystemFont_Tiny2"
+          text="Dungeon Loot Tracker" justifyH="LEFT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPLEFT" relativeTo="DLT_Parent_" x="5" y="-5" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+
+    <Frames>
+      <Button name="$parentCloseBtn" inherits="UIPanelCloseButtonNoScripts"
+        parent="DLT_Parent_">
+        <Size x="15" y="15" />
         <Anchors>
-            <Anchor point="CENTER" />
+          <Anchor point="TOPRIGHT" relativeTo="DLT_Parent_" x="0" y="0" />
         </Anchors>
-        <Layers>
-            <Layer>
-                <FontString name="DLT_AddonTitle" font="Fonts\FRIZQT__.TTF"
-                    text="Dungeon Loot Tracker" justifyH="CENTER" justifyV="MIDDLE">
-                    <Color r="0.8" g="0.8" b="0.8" a="1" />
-                    <FontHeight val="13" />
-                    <Anchors>
-                        <Anchor point="TOPLEFT" relativeTo="$parent" x="0" y="0" />
-                    </Anchors>
-                </FontString>
-            </Layer>
-        </Layers>
-        <Frames>
-            <Button name="DLT_CloseBtn">
-                <Anchors>
-                    <Anchor point="TOPRIGHT" relativeTo="$parent" relativePoint="TOPRIGHT" x="-8"
-                        y="-15" />
-                </Anchors>
-                <Size x="15" y="15" />
-                <Layers>
-                    <Layer>
-                        <FontString name="CloseButton" font="Fonts\FRIZQT__.TTF" text="X"
-                            justifyH="LEFT" justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="13" />
-                        </FontString>
-                    </Layer>
-                </Layers>
-                <Scripts>
-                    <OnClick>
+        <DisabledTexture atlas="RedButton-Exit-Disabled" />
+        <NormalTexture atlas="RedButton-Exit" />
+        <PushedTexture atlas="RedButton-exit-pressed" />
+        <HighlightTexture atlas="RedButton-Highlight" alphaMode="ADD" />
+        <Scripts>
+          <OnClick>
                         self:GetParent():Hide()
                     </OnClick>
-                </Scripts>
-            </Button>
-            <Button name="DLT_ChooseDifficulty" inherits="GameMenuButtonTemplate" text="Difficulty">
-                <Size x="150" y="25" />
-                <Anchors>
-                    <Anchor point="BOTTOM" relativeTo="DLT_AddonTitle" relativePoint="BOTTOM" x="0"
-                        y="15" />
-                </Anchors>
-                <Scripts>
-                    <OnClick>DLTAddOn:ChooseDifficulty()</OnClick>
-                </Scripts>
-            </Button>
-            <Frame name="DLT_Difficulties">
-                <Anchors>
-                    <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT" x="10"
-                        y="-35" />
-                    <Anchor point="BOTTOMRIGHT" relativeTo="$parent" relativePoint="TOPRIGHT"
-                        x="-10" y="-150" />
-                </Anchors>
-                <Layers>
-                    <Layer>
-                        <!-- <FontString font="Fonts\FRIZQT__.TTF" text="Difficulty" justifyH="LEFT"
-                        justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1"/>
-                            <FontHeight val="13"/>
-                            <Anchors>
-                                <Anchor point="TOP" relativeTo="$parent" relativePoint="TOP" x="0" y="0"/>
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1"/>
-                            </Shadow>
-                        </FontString> -->
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="D" justifyH="LEFT"
-                            justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"
-                                    x="15" y="-35" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="R" justifyH="LEFT"
-                            justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"
-                                    x="15" y="-55" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="N" justifyH="LEFT"
-                            justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"
-                                    x="30" y="-20" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="H" justifyH="LEFT"
-                            justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"
-                                    x="49" y="-20" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="M" justifyH="LEFT"
-                            justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"
-                                    x="68" y="-20" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="L10" justifyH="LEFT"
-                            justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPRIGHT" relativeTo="$parent"
-                                    relativePoint="TOPRIGHT" x="-15" y="-35" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="L25" justifyH="LEFT"
-                            justifyV="TOP">
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPRIGHT" relativeTo="$parent"
-                                    relativePoint="TOPRIGHT" x="-15" y="-54" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <!-- Raid Difficulty Headers -->
-                        <FontString font="Fonts\FRIZQT__.TTF" text="N" justifyH="LEFT"
-                            justifyV="TOP">                            <!-- Legacy Normal Raid-->
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPRIGHT" relativeTo="$parent"
-                                    relativePoint="TOPRIGHT" x="-65" y="-20" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-
-                        <FontString font="Fonts\FRIZQT__.TTF" text="H" justifyH="LEFT"
-                            justifyV="TOP">                            <!-- Legacy Heroic Raid-->
-                            <Color r="0.8" g="0.8" b="0.8" a="1" />
-                            <FontHeight val="15" />
-                            <Anchors>
-                                <Anchor point="TOPRIGHT" relativeTo="$parent"
-                                    relativePoint="TOPRIGHT" x="-45" y="-20" />
-                            </Anchors>
-                            <Shadow>
-                                <Offset x="5" y="0" />
-                                <Color r="0" g="0" b="0" a="1" />
-                            </Shadow>
-                        </FontString>
-                    </Layer>
-                </Layers>
-
-                <!-- Dungeon Difficulties -->
-                <Frames>
-                    <Button name="DLT_Diff_Dungeon_Normal">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="1" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT"
-                                x="30" y="-35" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Dungeon Normal") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetDungeonDifficulty_OnClick(1) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-
-                    <Button name="DLT_Diff_Dungeon_Heroic">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="0" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" relativeTo="DLT_Diff_Dungeon_Normal"
-                                relativePoint="TOPRIGHT" x="4" y="0" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Dungeon Heroid") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetDungeonDifficulty_OnClick(2) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-
-                    <Button name="DLT_Diff_Dungeon_Mythic">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="0" b="1" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" relativeTo="DLT_Diff_Dungeon_Heroic"
-                                relativePoint="TOPRIGHT" x="4" y="0" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Dungeon Mythic") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetDungeonDifficulty_OnClick(23) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-                    <!-- End of Dungeon Difficulties -->
-
-                    <!-- Raid Difficulties -->
-                    <Button name="DLT_Diff_Raid_Normal">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="1" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" relativeTo="DLT_Diff_Dungeon_Normal"
-                                relativePoint="BOTTOMLEFT" x="0" y="-5" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Raid Normal") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetRaidDifficulty_OnClick(14) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-
-                    <Button name="DLT_Diff_Raid_Heroic">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="0" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" relativeTo="DLT_Diff_Raid_Normal"
-                                relativePoint="TOPRIGHT" x="4" y="0" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Raid Heroic") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetRaidDifficulty_OnClick(15) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-
-                    <Button name="DLT_Diff_Raid_Mythic">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                        </NormalTexture>
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="0" b="1" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPLEFT" relativeTo="DLT_Diff_Raid_Heroic"
-                                relativePoint="TOPRIGHT" x="4" y="0" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Raid Mythic") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetRaidDifficulty_OnClick(16) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-                    <!-- End Of Raid Difficulties -->
-
-                    <!-- Legacy Raid Difficulties -->
-                    <Button name="DLT_Diff_Raid_Legacy_10">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="1" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPRIGHT" relativeTo="$parent" relativePoint="TOPRIGHT"
-                                x="-45" y="-35" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Legacy Raid 10 Player") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetRaidDifficulty_OnClick(3, true) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-
-                    <Button name="DLT_Diff_Raid_Legacy_10_H">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="0" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPRIGHT" relativeTo="DLT_Diff_Raid_Legacy_10"
-                                relativePoint="TOPLEFT" x="-4" y="0" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Legacy Raid 10 Player (Heroic)") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetRaidDifficulty_OnClick(5, true) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-
-                    <Button name="DLT_Diff_Raid_Legacy_25">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal" />
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="1" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPRIGHT" relativeTo="DLT_Diff_Raid_Legacy_10"
-                                relativePoint="BOTTOMRIGHT" x="0" y="-5" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Legacy Raid 25 Player") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetRaidDifficulty_OnClick(4, true) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-
-                    <Button name="DLT_Diff_Raid_Legacy_25_H">
-                        <Size x="15" y="15" />
-                        <NormalTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                        </NormalTexture>
-                        <HighlightTexture file="Interface/MINIMAP/Minimap_skull_normal">
-                            <Color r="1" g="0" b="0" a="1" />
-                        </HighlightTexture>
-                        <Anchors>
-                            <Anchor point="TOPRIGHT" relativeTo="DLT_Diff_Raid_Legacy_25"
-                                relativePoint="TOPLEFT" x="-4" y="0" />
-                        </Anchors>
-                        <Scripts>
-                            <OnEnter>
-                                <!-- ShowTooltip("Legacy Raid 25 Player (Heroic)") -->
-                            </OnEnter>
-                            <OnLeave>DLTAddOn:HideTooltip()</OnLeave>
-                            <OnClick>
-                                <!-- SetRaidDifficulty_OnClick(6, true) -->
-                            </OnClick>
-                        </Scripts>
-                    </Button>
-                    <!-- End of Legacy Raid Difficulties -->
-
-                </Frames>
-            </Frame>
-
-        </Frames>
-        <Frames>
-            <Button name="DLT_ResetAllInstancesButton" inherits="GameMenuButtonTemplate"
-                text="Reset All Instances">
-                <Size x="150" y="25" />
-                <Anchors>
-                    <Anchor point="BOTTOM" relativeTo="$parent" relativePoint="BOTTOM" x="0" y="15" />
-                </Anchors>
-                <Scripts>
-                    <OnClick>DLTAddOn:ResetAllInstances()</OnClick>
-                </Scripts>
-            </Button>
-        </Frames>
-
-
-        <Scripts>
-            <OnLoad inherit="prepend">
-				self:RegisterForDrag("LeftButton")
-            </OnLoad>
-            <OnDragStart>
-				if self:IsMovable() then
-					self:StartMoving();
-				end
-            </OnDragStart>
-            <OnDragStop>
-				if self:IsMovable() then
-					self:StopMovingOrSizing();
-				end
-            </OnDragStop>
         </Scripts>
+      </Button>
+    </Frames>
+    <Frames>
+      <Button name="$parentToggleRecordingBtn" parent="DLT_Parent_">
+        <KeyValues>
+          <KeyValue key="recording" value="false" />
+        </KeyValues>
+        <Size x="16" y="16" />
+        <Anchors>
+          <Anchor point="BOTTOMLEFT" relativeTo="DLT_Parent_" x="5" y="5" />
+        </Anchors>
+        <NormalTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-Up" />
+        <HighlightTexture
+          file="Interface\Addons\DungeonLootTracker\Images\UI-Common-MouseHilight"
+          alphaMode="ADD" />
+        <PushedTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-Down" />
+        <Scripts>
+          <OnClick>DLTAddOn:ToggleRecording_OnClick(self)</OnClick>
+        </Scripts>
+      </Button>
+      <Button name="$parentReportWindowBtn" text="R" parent="DLT_Parent_">
+        <Size x="14" y="14" />
+        <Anchors>
+          <Anchor point="LEFT" relativePoint="RIGHT"
+            relativeTo="DLT_Parent_ToggleRecordingBtn" x="0" y="0" />
+        </Anchors>
+        <NormalTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-List" />
+        <HighlightTexture
+          file="Interface\Addons\DungeonLootTracker\Images\UI-Common-MouseHilight"
+          alphaMode="ADD" />
+      </Button>
+    </Frames>
 
-    </Frame>
+    <Scripts>
+      <OnMouseDown>
+                self:StartMoving()
+            </OnMouseDown>
+      <OnMouseUp>
+                self:StopMovingOrSizing()
+            </OnMouseUp>
+    </Scripts>
+  </Frame>
+
 </Ui>

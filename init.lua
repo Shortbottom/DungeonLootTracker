@@ -1,8 +1,31 @@
-local addonName, DLT_Addon = ...
+---@diagnostic disable: duplicate-set-field,duplicate-doc-field,duplicate-doc-alias
+local addonName = ... ---@type string
 
----@class DLT_Addon
-DLT_Addon = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceConsole-3.0", "DLT_Minimap")
+---@class DLT_Addon: AceAddon
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
+---@class Localisation: AceModule
+local L = addon:GetModule("Localisation")
+
+---@class Metadata: AceModule
+local metadata = addon:GetModule("Metadata")
+
+---@class Database: AceModule
+local database = addon:GetModule("Database")
+
+---@class Constants: AceModule
+local constants = addon:GetModule("Constants")
+
+---@class Events: AceModule
+local events = addon:GetModule("Events")
+
+---@class MainFrame: AceModule
+local mainFrame = addon:GetModule("MainFrame")
+
+---@class Minimap: AceModule
+local minimap = addon:GetModule("Minimap")
+
+--[[
 -- TODO: We should do the localisation here
 -- TODO: Localisation End
 
@@ -20,7 +43,6 @@ DLT_Addon.Metadata = ShortyUtil.Metadata.GetAddOnMetadata(addonName)
 DLT_Addon.MinimapBtnName = DLT_Addon.Metadata.AddonName .. "_Minimap"
 
 -- TODO: Set the defaults to use the
---- [[ Create the defaults for the SavedVars ]] ---
 local defaults = {
   profile = {
     general = {
@@ -99,23 +121,27 @@ local minimapOptions = {
     }
   }
 }
+--]]
 
 --- Setup the LDB Data Object for the minimap icon
 ---@type table
 local dltLDB =
     LibStub("LibDataBroker-1.1"):NewDataObject(
-      DLT_Addon.Metadata.AddonName,
+      addon.Metadata.AddonName,
       {
         type = "data source",
         text = "Dungeon Loot Tracker",
-        icon = DLT_Addon.Metadata.Icon,
+        icon = addon.Metadata.Icon,
         OnClick = function (_, button)
-          DLT_Addon.minimap_Click(DLT_Addon.Metadata.Title, button)
+          minimap:minimap_Click(button)
         end
       }
     )
 
-function DLT_Addon:OnInitialize()
+function addon:OnInitialize()
+  print("test")
+  --[[
+
   -- NOTE: We want this loaded first so that we make sure that when things load they are set correctly
   -- Load the SavedVariables
   self.db = LibStub("AceDB-3.0"):New("dltDB", defaults)
@@ -149,23 +175,18 @@ function DLT_Addon:OnInitialize()
   -- NOTE: This is just to ensure that the key is set to a value and isn't left as null
   local f = _G["DLT_Parent_ToggleRecordingBtn"]
   f.recording = false
+
+  ]]
 end
 
-function DLT_Addon:OnEnable()
+function addon:OnEnable()
   -- Code that runs when the AddOn is enabled
-  DLT_Addon:Enable()
-
-  -- Load the Minimap Button
-  DLT_Addon:LoadMinimapBtn()
-  icon:Register(DLT_Addon.MinimapBtnName, dltLDB, DLT_Addon.db.profile.minimap)
-  if not DLT_Addon.db.profile.minimap.hide then
-    icon:Show()
-  else
-    icon:Hide()
-  end
+  metadata:Enable()
+  mainFrame:Enable()
+  minimap:Enable()
 end
 
-function DLT_Addon.OnDisable()
+function addon.OnDisable()
   -- Code that runs when the AddOn is disabled
   DLT_Addon:Disable()
 end
@@ -173,7 +194,7 @@ end
 ---Event handle for slashCommand
 ---@param self self
 ---@param msg string
-function DLT_Addon:slashCommand(msg)
+function addon:slashCommand(msg)
   if not msg or strtrim(msg) == "" then
     -- If no args are passed in the slash command we just want to toggle the window being shown
     ShortyUtil:toggleWindow("DLT_Parent_")
@@ -190,19 +211,22 @@ function DLT_Addon:slashCommand(msg)
   end
 end
 
+--[[
+
 ---Event Handler: MouseClick on the minimap button. Left/Right clicks do different things
 ---@param self string This is self, we don't need it so ignore it
 ---@param button string This is the name of the button that generated the click event in string format - <Any(Up/Down)> <LeftButton(Up/Down) <RightButton(Up/Down)>
-function DLT_Addon.minimap_Click(self, button)
+function addon.minimap_Click(self, button)
   if button == "LeftButton" then
     ShortyUtil:toggleWindow("DLT_Parent_")
   elseif button == "RightButton" then
     DLT_Addon:openOptions()
   end
 end
+]]
 
 ---Open the options window
-function DLT_Addon:openOptions()
+function addon:openOptions()
   if DLT_Addon.IsWrathClassic then
     InterfaceAddOnsList_Update() -- This way the correct category will be shown when calling InterfaceOptionsFrame_OpenToCategory
     InterfaceOptionsFrame_OpenToCategory(self)
@@ -221,17 +245,17 @@ end
 
 ---Gets the value of the Auto Record setting from the characters SavedVariables
 ---@return boolean
-function DLT_Addon:getAutoRecord()
+function addon:getAutoRecord()
   return DLT_Addon.db.profile.general.autoRecord
 end
 
 ---Save the Auto Record setting
 ---@param value boolean # If the user has chosen to auto record or not
-function DLT_Addon:setAutoRecord(_, value)
+function addon:setAutoRecord(_, value)
   self.db.profile.general.autoRecord = value
 end
 
 ---RefreshConfig
-function DLT_Addon.RefreshConfig()
+function addon.RefreshConfig()
   AceConfigRegistry:NotifyChange(DLT_Addon.Metadata.AddonName)
 end

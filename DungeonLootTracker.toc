@@ -10,7 +10,7 @@
 ## X-Wago-ID: nGvpze6x
 ## X-Flavor: Mainline
 ## X-Category: Bags & Inventory
-## OptionalDeps: Ace3
+## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3
 
 # Load external libraries
 Libs\LibStub\LibStub.lua
@@ -21,15 +21,24 @@ Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
 Libs\AceHook-3.0\AceHook-3.0.xml
 Libs\AceConsole-3.0\AceConsole-3.0.xml
 Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\LibDBIcon-1.0.xml
 
-boot.lua
+core\boot.lua
+core\events.lua
+core\metadata.lua
+core\localisation.lua
+core\mainframe.lua
+core\constants.lua
+core\database.lua
+core\hooks.lua
+core\minimap.lua
 
-Options\includes.xml
+Options\options.lua
 
 init.lua
 
 # Core.lua
-MainWindow.xml
+MainFrame.xml

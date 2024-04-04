@@ -1,10 +1,5 @@
-.env
-format.bat
-**/desktop.ini
 .backups
-.DS_Store
 .release
-.install
 .vscode
 annotations.lua
 CHANGELOG.MD
