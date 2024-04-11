@@ -28,24 +28,16 @@ local minimap = addon:GetModule("Minimap")
 ---@class Options: AceModule
 local options = addon:GetModule("Options")
 
+---@class Recording: AceModule
+local recording = addon:GetModule("Recording")
+
+
+-- TODO Will need this later when we put Archivist in
+-- ---@class Archivist: AceModule
+-- local dlt_archivist = addon:GetModule("DLT_Archivist")
+
 function addon:OnInitialize()
-  --[[
-  ------------------ Setup the options and add it to the Blizzard AddOn options frame ------------------
-  -- Add the use of profiles
-  local profiles = AceDBOptions:GetOptionsTable(self.db)
-  AceConfig:RegisterOptionsTable("DungeonLootTracker_Profiles", profiles)
-  AceConfigDialog:AddToBlizOptions("DungeonLootTracker_Profiles", "Profiles", DLT_Addon.Metadata.Title)
 
-  -- Register Chat Commands
-  self:RegisterChatCommand("dlt", "slashCommand")
-  self:RegisterChatCommand(DLT_Addon.Metadata.AddonName, "slashCommand")
-
-  -- NOTE: Doesn't really matter but set the default to be not recording;
-  -- NOTE: This is just to ensure that the key is set to a value and isn't left as null
-  local f = _G["DLT_Parent_ToggleRecordingBtn"]
-  f.recording = false
-
-  ]]
 end
 
 function addon:OnEnable()
@@ -53,6 +45,8 @@ function addon:OnEnable()
   metadata:Enable()
   mainFrame:Enable()
   minimap:Enable()
+  recording:Enable()
+  -- dlt_archivist:Enable() -- TODO Saving for later
 end
 
 function addon.OnDisable()
@@ -60,6 +54,7 @@ function addon.OnDisable()
   metadata:Disable()
   mainFrame:Disable()
   minimap:Disable()
+  recording:Disable()
   addon:Disable()
 end
 

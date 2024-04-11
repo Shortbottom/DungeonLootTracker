@@ -17,6 +17,7 @@ externals:
   Libs/LibWindow-1.1: https://repos.curseforge.com/wow/libwindow-1-1/trunk/LibWindow-1.1
   Libs/LibUIDropDownMenu: https://repos.wowace.com/wow/libuidropdownmenu/trunk/LibUIDropDownMenu
   Libs/LibDBIcon-1.0: https://repos.curseforge.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
+  Embeds/Archivist: https://github.com/emptyrivers/Archivist
 
 manual-changelog:
   filename: CHANGELOG.md

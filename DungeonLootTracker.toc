@@ -2,7 +2,7 @@
 ## Version: @project-version@
 ## Title: Dungeon Loot Tracker
 ## Notes: Tracking items picked in Dungeon and easily sell them.
-## SavedVariables: dltDB
+## SavedVariables: dltDB, dltRecordings_DB
 ## Author: Shortbottom
 ## IconTexture: Interface\AddOns\DungeonLootTracker\Images\icon
 ## X-Acronym: DLT
@@ -11,6 +11,9 @@
 ## X-Flavor: Mainline
 ## X-Category: Bags & Inventory
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3
+
+# Embed Archivist
+# Embeds\Archivist\Archivist.xml
 
 # Load external libraries
 Libs\LibStub\LibStub.lua
@@ -26,16 +29,23 @@ Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\LibDBIcon-1.0.xml
 
+# This should be the first one that loads the very first bits
 core\boot.lua
+
 core\Shorty_Util.lua
-core\events.lua
 core\metadata.lua
 core\localisation.lua
 core\mainframe.lua
 core\constants.lua
 core\database.lua
+core\events.lua
 core\hooks.lua
 core\minimap.lua
+# core\archivist.lua
+
+core\db\recordings.lua
+
+Recording\main.lua
 
 Options\general.lua
 Options\minimap.lua

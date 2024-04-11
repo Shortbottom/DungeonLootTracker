@@ -20,7 +20,7 @@
   </FontFamily>
 
   <Frame name="DLT_Parent_" movable="true" resizable="false" enableMouse="true"
-    clampedToScreen="true" parent="UIParent" inherits="InsetFrameTemplate" scale="1">
+    clampedToScreen="true" parent="UIParent" inherits="InsetFrameTemplate" scale="1.5">
     <Size>
       <AbsDimension x="115" y="40" />
     </Size>
@@ -61,10 +61,9 @@
       </Button>
     </Frames>
     <Frames>
-      <Button name="$parentToggleRecordingBtn" parent="DLT_Parent_">
-        <KeyValues>
-          <KeyValue key="recording" value="false" />
-        </KeyValues>
+
+      <!-- Start Recording Button -->
+      <Button name="$parentStartRecordingBtn" parent="DLT_Parent_">
         <Size x="16" y="16" />
         <Anchors>
           <Anchor point="BOTTOMLEFT" relativeTo="DLT_Parent_" x="5" y="5" />
@@ -75,21 +74,53 @@
           alphaMode="ADD" />
         <PushedTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-Down" />
         <Scripts>
-          <OnClick>DLTAddOn:ToggleRecording_OnClick(self)</OnClick>
+          <OnClick>
+            LibStub("AceEvent-3.0"):SendMessage("recording/startRecording")
+            PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+          </OnClick>
         </Scripts>
       </Button>
+
+      <!-- Stop Recording Button -->
+      <Button name="$parentStopRecordingBtn" parent="DLT_Parent_">
+        <Size x="16" y="16" />
+        <Anchors>
+          <Anchor point="BOTTOMLEFT" relativeTo="DLT_Parent_" x="5" y="5" />
+        </Anchors>
+        <NormalTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Stop-Up" />
+        <HighlightTexture
+          file="Interface\Addons\DungeonLootTracker\Images\UI-Common-MouseHilight"
+          alphaMode="ADD" />
+        <Scripts>
+          <OnClick>
+            LibStub("AceEvent-3.0"):SendMessage("recording/stopRecording")
+            PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <!-- Report Window Buttopn -->
       <Button name="$parentReportWindowBtn" text="R" parent="DLT_Parent_">
-        <Size x="14" y="14" />
+        <Size x="16" y="16" />
         <Anchors>
           <Anchor point="LEFT" relativePoint="RIGHT"
-            relativeTo="DLT_Parent_ToggleRecordingBtn" x="0" y="0" />
+            relativeTo="DLT_Parent_StopRecordingBtn" x="0" y="0" />
         </Anchors>
         <NormalTexture file="Interface\Addons\DungeonLootTracker\Images\UI-Record-List" />
         <HighlightTexture
           file="Interface\Addons\DungeonLootTracker\Images\UI-Common-MouseHilight"
           alphaMode="ADD" />
+        <Scripts>
+          <OnClick>
+              LibStub("AceEvent-3.0"):SendMessage("recording/showList")
+              PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+            </OnClick>
+        </Scripts>
       </Button>
     </Frames>
+    <KeyValues>
+      <KeyValue key="recording" value="false" />
+    </KeyValues>
 
     <Scripts>
       <OnMouseDown>

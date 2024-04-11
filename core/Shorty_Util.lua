@@ -23,12 +23,8 @@ end
 
 ---Iterates through a table and prints its
 ---@param tbl table
----@param nestedTimes? number
-function util:tprint(tbl, nestedTimes)
-  local timesThrough = 0
-  for key, value in pairs(tbl) do
-    print("key: ", key, "; value: ", value)
-  end
+function util:tprint(tbl)
+  print(util:TableToString(tbl))
 end
 
 -- Convert a table to a string (not my code)
