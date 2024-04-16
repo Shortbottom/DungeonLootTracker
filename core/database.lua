@@ -21,13 +21,29 @@ end
 ---Get the value of AutoRecord
 ---@return boolean
 function DB:GetAutoRecord()
-  return DB.data.profile.general.autoRecord
+  return DB.data.profile.recording.autoRecord
 end
 
 ---Set if AutoRecord is enabled/disabled
 ---@param enabled boolean
 function DB:SetAutoRecord(enabled)
-  DB.data.profile.general.autoRecord = enabled
+  DB.data.profile.recording.autoRecord = enabled
+end
+
+---Get the value of addon:PrintMoneyEarned
+---@return boolean
+function DB:GetPrintMoneyEarned()
+  return DB.data.profile.recording.PrintMoneyEarned
+end
+
+---Set if addon:PrintMoneyEarned is enabled/disabled
+---@param enabled boolean
+function DB:SetPrintMoneyEarned(enabled)
+  if enabled then
+    DB.data.profile.recording.printMoneyEarned = true
+  else
+    DB.data.profile.recording.printMoneyEarned = false
+  end
 end
 
 ---Get the value of Minimap Locked
