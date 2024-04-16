@@ -13,6 +13,9 @@ local metadata = addon:GetModule("Metadata")
 ---@class Database: AceModule
 local database = addon:GetModule("Database")
 
+---@class RecordsDB: AceModule
+local rDB = addon:GetModule("RecordsDB")
+
 ---@class Constants: AceModule
 local constants = addon:GetModule("Constants")
 
@@ -31,13 +34,14 @@ local options = addon:GetModule("Options")
 ---@class Recording: AceModule
 local recording = addon:GetModule("Recording")
 
+local _slashCmds = { "dlt", "dungeonloottracker" }
 
 -- TODO Will need this later when we put Archivist in
 -- ---@class Archivist: AceModule
 -- local dlt_archivist = addon:GetModule("DLT_Archivist")
 
 function addon:OnInitialize()
-
+  LibStub("AceEvent-3.0"):Embed(addon)
 end
 
 function addon:OnEnable()
@@ -47,9 +51,13 @@ function addon:OnEnable()
   minimap:Enable()
   recording:Enable()
   -- dlt_archivist:Enable() -- TODO Saving for later
+
+  for _, v in pairs(_slashCmds) do
+    addon:RegisterChatCommand(v, "slashCommand")
+  end
 end
 
-function addon.OnDisable()
+function addon:OnDisable()
   -- Code that runs when the AddOn is disabled
   metadata:Disable()
   mainFrame:Disable()
@@ -66,15 +74,21 @@ function addon:slashCommand(msg)
     -- If no args are passed in the slash command we just want to toggle the window being shown
     ShortyUtil:toggleWindow("DLT_Parent_")
   elseif msg == "options" then
-    DLT_Addon:openOptions()
+    addon:openOptions()
   elseif msg == "help" then
     local helpMsg = "Dungeon Loot Tracker Commands"
     helpMsg = helpMsg .. "\n /dlt -- will toggle the window being shown."
     helpMsg = helpMsg .. "\n /dlt options -- opens the AddOn options in the blizzard options window"
     helpMsg = helpMsg .. "\n /dlt help -- shows this help message."
-    self:Print(helpMsg)
-  else
-    self:Print(msg)
+    addon:Print(helpMsg)
+    --@do-not-package@
+    -- ! WE DO NOT WANT THIS MAKING IT INTO THE RELEASE VERSION AS SOMEONE IS BOUND TO "ACCIDENTALLY" USE IT
+  elseif msg == "wipe" then
+    addon:Print("wiping all data")
+    rDB.data.records = {}
+    rDB.data.lastUsedID = 0
+    rDB.data.totalRecordings = 0
+    --@end-do-not-package@  else
   end
 end
 
