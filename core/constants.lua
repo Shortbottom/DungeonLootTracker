@@ -15,6 +15,8 @@ addon.isClassic = WOW_PROJECT_ID == WOW_PROJECT_CLASSIC
 addon.isBCC = WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC
 addon.isWrath = WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC
 
+addon.currentRecID = 0
+
 ---@type string Name of the main category in the blizzard add on options
 addon.optionsCategoryName = "DungeonLootTracker_options"
 
@@ -24,14 +26,17 @@ addon.optionsCategoryName = "DungeonLootTracker_options"
 const.DATABASE_DEFAULTS = {
   profile = {
     general = {
-      enabled = true,    -- INFO: We of course want our AddOn to be enabled by default
-      autoRecord = false -- INFO: We don't want the AddOn to automatically do something unless the User has chosen for it to
+      enabled = true -- INFO: We of course want our AddOn to be enabled by default
+    },
+    recording = {
+      autoRecord = false,      -- We don't want the AddOn to automatically do something unless the User has chosen for it to
+      printMoneyEarned = false -- Default should be not to addon:Print the amount of gold earned during a recording
     },
     minimap = {
-      hide = false,             -- INFO: Show the minimap button by default
-      lock = false,             -- INFO: Don't lock the position of the minimap button
-      minimapPos = 90,          -- INFO: Position of the button on the minimap
-      showInCompartment = false -- INFO: Show in the new addon compartment
+      hide = false,             -- Show the minimap button by default
+      lock = false,             -- Don't lock the position of the minimap button
+      minimapPos = 90,          -- Position of the button on the minimap
+      showInCompartment = false -- Show in the new addon compartment
     }
   },
   char = {}
@@ -80,8 +85,10 @@ const.RECORD_LIST_DEFAULTS = {
   instanceID = "",
   startTime = 0,
   endTime = 0,
-  recordTimeDiff = 0,
-  goldLooted = 0,
+  timeDiff = 0,
+  playerMoneyStart = 0,
+  playerMoneyEnd = 0,
+  playerMoneyDiff = 0,
   items = { const.RECORD_ITEM_DEFAULTS }
 }
 
