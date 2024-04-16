@@ -19,7 +19,9 @@ local _autoRecordEvents = {
   -- ["PLAYER_LEAVING_WORLD"] = "LeaveWorld"   -- This might be the better event to stop recording when autoRecord is true
 }
 local _recordingEvents = {
-  ["LOOT_READY"] = "lootReady"
+  ["LOOT_READY"] = function () addon:SendMessage("recording/lootReady") end,
+  ["LOOT_CLOSED"] = function () addon:SendMessage("recording/lootClosed") end,
+  ["LOOT_SLOT_CLEARED"] = function () addon:SendMessage("recording/lootSlotCleared") end
 }
 
 local events = addon:NewModule("Events")
@@ -37,27 +39,17 @@ function events:EnterWorld(event, initialLogin, reload, ...)
   local inInstance, instanceType = IsInInstance()
 
   if db:GetAutoRecord() then
-    print("We want to autoRecord")
+    addon:Print("We want to autoRecord")
   end
   if ((initialLogin ~= true) and (reload ~= true)) then
-    print("Entered an Instance")
+    addon:Print("Entered an Instance")
   else
-    print("Logged In or Reloading")
+    addon:Print("Logged In or Reloading")
   end
 end
 
 function events:LeaveWorld(...)
-  print("Leaving World: ", ...)
-end
-
-function events:lootReady()
-  local numItems = GetNumLootItems()
-  print("numItems: ", numItems)
-  local info = GetLootInfo()
-  print("info: ", ShortyUtil:TableToString(info))
-  print("LOOT AHOY")
-
-  local x = recording:collectLoot(n, t)
+  addon:Print("Leaving World: ", ...)
 end
 
 function events:OnDisable()
@@ -67,12 +59,14 @@ function events:OnDisable()
 end
 
 function events:startRecording_Events()
+  addon:Print("Listening to events")
   for k, v in pairs(_recordingEvents) do
     events:RegisterEvent(k, v)
   end
 end
 
 function events:stopRecording_Events()
+  addon:Print("Stopping listening to events")
   for k, v in pairs(_recordingEvents) do
     events:UnregisterEvent(k, v)
   end
