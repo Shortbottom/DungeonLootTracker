@@ -6,11 +6,14 @@
 ## Author: Shortbottom
 ## IconTexture: Interface\AddOns\DungeonLootTracker\Images\icon
 ## X-Acronym: DLT
+## X-ProjectRevision: @project-revision@
 ## X-Curse-Project-ID: 974205
 ## X-Wago-ID: nGvpze6x
 ## X-Flavor: Mainline
 ## X-Category: Bags & Inventory
 ## OptionalDeps: LibStub, CallbackHandler-1.0, Ace3
+### ! We aren't going to touch the AddOn Compartment API for now because it still shows in the compartment even if the addon itself is disabled.
+### AddonCompartmentFunc: DLT_OnAddonCompartmentClick
 
 # Embed Archivist
 # Embeds\Archivist\Archivist.xml
@@ -19,6 +22,7 @@
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
 Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceLocale-3.0\AceLocale-3.0.xml
 Libs\AceDB-3.0\AceDB-3.0.xml
 Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
 Libs\AceHook-3.0\AceHook-3.0.xml
@@ -28,6 +32,9 @@ Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\AceConfig-3.0\AceConfig-3.0.xml
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 Libs\LibDBIcon-1.0\LibDBIcon-1.0.xml
+
+# Load locales
+Locales\Locales.xml
 
 # This should be the first one that loads the very first bits
 core\boot.lua
@@ -43,11 +50,12 @@ core\hooks.lua
 core\minimap.lua
 # core\archivist.lua
 
-core\db\recordings.lua
+core\db\RecordsDB.lua
 
 Recording\main.lua
 
 Options\general.lua
+Options\Recording.lua
 Options\minimap.lua
 Options\options.lua
 
