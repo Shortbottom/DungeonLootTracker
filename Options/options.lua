@@ -21,6 +21,9 @@ local events = addon:GetModule("Events")
 ---@class GeneralOptions: AceModule
 local generalOptions = addon:GetModule("GeneralOptions")
 
+---@class RecordingOpts: AceModule
+local recordingOpts = addon:GetModule("RecordingOpts")
+
 ---@class MinimapOptions: AceModule
 local minimapOptions = addon:GetModule("MinimapOptions")
 
@@ -64,6 +67,7 @@ function options:GetOptions()
     name = L:G(addon.Metadata.Title),
     args = {
       general = generalOptions:GetGeneralOptions(),
+      recording = recordingOpts:GetRecordingOptions(),
       minimap = minimapOptions:GetMinimapOptions(),
       info = self:GetInfoOptions()
     }

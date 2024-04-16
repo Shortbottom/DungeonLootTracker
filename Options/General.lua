@@ -19,12 +19,12 @@ local options = {
   type = "group",
   order = 1,
   args = {
-    autoRecord = {
+    placeHolder = {
       type = "toggle",
-      name = "Auto Record",
-      desc = "Do you want to start recording as soon as you enter an instance without being asked?",
-      get = function () return DB:GetAutoRecord() end,
-      set = function (_, val) DB:SetAutoRecord(val) end
+      name = "Placeholder",
+      desc = "Placeholder",
+      --get = "func() return call a function here end",
+      --set = "function (_, val) DB:SetAutoRecord(val) end"
     }
   }
 }

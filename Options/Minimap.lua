@@ -69,10 +69,63 @@ function minimapOptions:GetMinimapOptions()
           DB:SetMinimapPos(value)
           minimap:SetPosition(value)
         end
+      },
+      showInCompartment = {
+        type = "toggle",
+        name = "Show in Compartment",
+        desc = "Show the button in the compartment",
+        order = 4,
+        hidden = true,
+        get = function () return DB:GetMinimapCompartment() end,
+        set = function (_, enabled)
+          DB:SetMinimapCompartment(enabled)
+          if enabled then
+            minimapOptions:ShowInCompartment() -- Not done yet
+          else
+            minimapOptions:HideInCompartment() -- Not done yet
+          end
+        end
       }
     }
   }
   return options
+end
+
+---Lock the minimap button
+function minimapOptions:Lock()
+  icon:Lock(const.miniMapBtnName)
+end
+
+---Unlock the minimap button
+function minimapOptions:Unlock()
+  icon:Unlock(const.miniMapBtnName)
+end
+
+---Show the minimap button
+function minimapOptions:Show()
+  icon:Show(const.miniMapBtnName)
+end
+
+---Hide the minimap button
+function minimapOptions:Hide()
+  icon:Hide(const.miniMapBtnName)
+end
+
+-- Doing this here because I think the function belongs in this section but the function needs to be on the AddOn namespace
+function addon:DLT_OnAddonCompartmentClick()
+  addon:Print("DLT_OnAddonCompartmentClick")
+end
+
+function minimapOptions:ShowInCompartment()
+
+end
+
+function minimapOptions:HideInCompartment()
+
+end
+
+function minimapOptions:SetPosition(arg)
+  icon:Refresh(const.miniMapBtnName, DB:GetData().profile.minimap)
 end
 
 minimapOptions:Enable()
