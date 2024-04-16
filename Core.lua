@@ -11,12 +11,12 @@ function addon:toggleWindow()
 end
 
 function addon:ResetAllInstances()
-  print("Ressetting all instances")
+  addon:Print("Ressetting all instances")
 end
 
 -- Functions to deal with starting and stopping recordings
 function addon:ToggleRecording_OnClick(self)
-  print(self.recording)
+  addon:Print(self.recording)
   if (self.recording) then
     addon:Record_Stop()
     PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
