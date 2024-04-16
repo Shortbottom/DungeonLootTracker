@@ -48,27 +48,3 @@ end
 function minimap:openOptions()
   LibStub("AceConfigDialog-3.0"):Open(addonName)
 end
-
----Lock the minimap button
-function minimap:Lock()
-  icon:Lock(const.miniMapBtnName)
-end
-
----Unlock the minimap button
-function minimap:Unlock()
-  icon:Unlock(const.miniMapBtnName)
-end
-
----Show the minimap button
-function minimap:Show()
-  icon:Show(const.miniMapBtnName)
-end
-
----Hide the minimap button
-function minimap:Hide()
-  icon:Hide(const.miniMapBtnName)
-end
-
-function minimap:SetPosition(arg)
-  icon:Refresh(const.miniMapBtnName, DB:GetData().profile.minimap)
-end
