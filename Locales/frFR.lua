@@ -8,4 +8,8 @@ L["Gold"] = "Or"
 L["Silver"] = "Argent"
 L["Copper"] = "Cuivre"
 
+--Recording\main.lua
+L["No Loot in Slot: "] = "No Loot in Slot: "
+L["Unknown Slot Type: "] = "Unknown Slot Type: "
+
 -- End of localization
