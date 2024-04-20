@@ -1,4 +1,8 @@
-local addonName, addon = ...
+local addonName = ... ---@type string
+
+---@class Addon
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
+
 local DLT_Parent_Frame = _G["DLT_Parent_"]
 local DLT_RecButton = _G["DLT_Parent_ToggleRecordingBtn"]
 
@@ -11,13 +15,13 @@ function addon:toggleWindow()
 end
 
 function addon:ResetAllInstances()
-  addon:Print("Ressetting all instances")
+  addon:Print("Resetting all instances")
 end
 
 -- Functions to deal with starting and stopping recordings
-function addon:ToggleRecording_OnClick(self)
-  addon:Print(self.recording)
-  if (self.recording) then
+function addon:ToggleRecording_OnClick(s)
+  addon:Print(s.recording)
+  if (s.recording) then
     addon:Record_Stop()
     PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
   else
