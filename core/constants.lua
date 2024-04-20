@@ -1,7 +1,7 @@
 ---@diagnostic disable: duplicate-set-field,duplicate-doc-field,duplicate-doc-alias
 local addonName = ... ---@type string
 
----@class DLT_Addon: AceAddon
+---@class Addon
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
 ---@class Localisation: AceModule
@@ -20,9 +20,6 @@ addon.currentRecID = 0
 ---@type string Name of the main category in the blizzard add on options
 addon.optionsCategoryName = "DungeonLootTracker_options"
 
----@class databaseOptions
----@field profile table
----@field general: profile
 const.DATABASE_DEFAULTS = {
   profile = {
     general = {
@@ -69,16 +66,8 @@ const.ITEM_QUALITY_COLOR = {
 ---@type string Name of the minimap button
 const.miniMapBtnName = addon.Metadata.Acronym .. "_MinimapBtn"
 
----@class RecordList
----@field recordID number A uniqueID for this recording to make it easier to select later - Will be used for deleting etc
----@field instanceID number An ID for zone/instance the player was in when recording started.
----@field startTime string The time the recording started UNIX time
----@field endTime string The time the recording ended UNIX time
----@field timeDiff number The length of time from start to end. Holding this here for later so we don't have to do it when we want to use it
----@field goldLooted number The amount of gold looted
----@field items: ItemList
 --- INFO: InstanceID This will either be the instanceID of a dungeon or the ID of the zone in the outside world.<br>
---- INFO: Using IDs rather than names so things stored in the SVs can be region agnostic
+--- INFO: Using IDs rather than names so things stored in the SVs can be region agnostic<br>
 --- INFO: All times will be held as a unix time offset by the server's time zone (e.g. UTC minus 5 hours).
 const.RECORD_LIST_DEFAULTS = {
   recordID = 0,
@@ -92,21 +81,21 @@ const.RECORD_LIST_DEFAULTS = {
   items = { const.RECORD_ITEM_DEFAULTS }
 }
 
----@class ItemList
----@field itemID number ItemID of the item. Should be the blizzard provided one
----@field displayID number Might need this to know what Icon to show otherwise get rid of it
----@field qualityColorID number Item Quality.
----@field qty number Amount of this item that has been picked up. Will be 1 for things like weapons/armor but for tradeskill items like cloth etc it can be more.
----@field value number The value of this item.
----@field Keep boolean If we should keep this item when vendoring.
 --- ?: [value] Not sure where to get this from.<br>
 --- ?: [Keep]: When do I set this flag? If I set it on pickup then if the player changes their settings after a recording then<br>this should use the old setting if they then use this AddOn to vendor items from the recording.<br>
 --- TODO: [value] Possibly build in support for AH AddOn values
+
+---@class ItemList
 const.RECORD_ITEM_DEFAULTS = {
+  slotType = 0,
   itemID = 0,
-  displayID = 0,
-  qualityColorID = 0,
-  qty = 0,
+  itemName = "",
+  icon = 0,
+  quality = 0,
+  quantity = 0,
   value = 0,
-  Keep = true,
+  keep = true,
+  looted = false,
+  classID = 0,
+  subClassID = 0
 }
