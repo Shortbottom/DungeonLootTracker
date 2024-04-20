@@ -13,8 +13,8 @@ local db = addon:GetModule("Database")
 local recordsDB = addon:NewModule("RecordsDB")
 
 function recordsDB:OnInitialize()
-  dltRecordings_DB = dltRecordings_DB or { totalRecordings = 0, lastUsedID = 0, records = {} }
-  recordsDB.data = dltRecordings_DB
+  DltRecordings_DB = DltRecordings_DB or { totalRecordings = 0, lastUsedID = 0, records = {} }
+  recordsDB.data = DltRecordings_DB
 end
 
 ---Returns the next ID to use
