@@ -1,6 +1,6 @@
 local addonName = ... ---@type string
 
----@class DLT_Addon: AceAddon
+---@class Addon
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
 ---@class Locales: AceModule
@@ -17,7 +17,7 @@ function util.DeepCopyTable(src, dest)
   for index, value in pairs(src) do
     if type(value) == "table" then
       dest[index] = {}
-      lib.DeepCopyTable(value, dest[index])
+      util.DeepCopyTable(value, dest[index])
     else
       dest[index] = value
     end
@@ -25,11 +25,11 @@ function util.DeepCopyTable(src, dest)
 end
 
 --- Prints a table with an optional prefix string.
---- @param tbl The table to print.
---- @param ... Optional prefix string.
-function util:tprint(tbl, ...)
+--- @param tbl table The table to print.
+--- @param pre_fix string # prefix string.
+function util:tprint(tbl, pre_fix)
+  pre_fix = pre_fix or ""
   print(util:table_to_json(tbl))
-  local pre_fix = ...
   local _tbl = util:TableToString(tbl)
   _tbl = string.gsub(_tbl, "{ { ", "\n{\n " .. fastrandom() .. " {\n    "):gsub(" }, ", "\n  },\n  "):gsub(" }", "\n  }\n}"):gsub(", ", ",\n   ")
   print(pre_fix, _tbl)
@@ -41,7 +41,7 @@ end
 ---The function uses several helper functions to generate the string representation, including functions to accumulate parts of the string, check if a string is a valid identifier, and calculate the length of a string representation of a value.
 ---The function handles different types of values, and applies the configuration options for printing hash keys and handling tags.
 ---@param t table table to convert to a string.
----@param ... varargs additional arguments that control the output format.
+---@param ... string additional arguments that control the output format.
 ---@return string str representing the table.
 function util:TableToString(t, ...)
   local PRINT_HASH = true
@@ -345,9 +345,11 @@ end
 
 --- Converts a Lua table to a JSON string.
 ---@param tbl table The Lua table to be converted.
----@return json JSON string representation of the table.
-function util:table_to_json(tbl)
+---@param label? string Additional arguments to control the output format.
+---@return string JSON String representation of the table.
+function util:table_to_json(tbl, label)
   local json_str = ""
+  ---@diagnostic disable-next-line: redefined-local
   local function serialize(tbl)
     local comma = false
     local t = type(tbl)
@@ -356,7 +358,7 @@ function util:table_to_json(tbl)
     elseif t == "boolean" then
       json_str = json_str .. (tbl and "true" or "false")
     elseif t == "string" then
-      json_str = json_str .. string.format("%q", tbl):gsub("n", ""):gsub("\n", ""):gsub("\\", " ")
+      json_str = json_str .. string.format("%q", tbl):gsub("\n", ""):gsub("\\", " ")
     elseif t == "table" then
       json_str = json_str .. "{"
       for k, v in pairs(tbl) do
@@ -374,17 +376,58 @@ function util:table_to_json(tbl)
   end
 
   serialize(tbl)
+  if label then
+    json_str = "\n//" .. label .. "\n" .. json_str .. "\n"
+  end
   return json_str
 end
 
+---@deprecated
 function util:print(...)
   print("|cFF18b566DLT: |r", ...)
 end
 
---- embedding and embed handling
-local mixins = {
-  "RegisterEvent", "UnregisterEvent",
-  "RegisterMessage", "UnregisterMessage",
-  "SendMessage",
-  "UnregisterAllEvents", "UnregisterAllMessages",
-}
+---Takes a string that can contain any number of money values including line breaks in the form of "X Gold Y Silver Z Copper"
+---and converts it to a string in the form of "X.Y.Z". WoW stores the player money if the form of 000000
+---@param arg string money value to convert.
+---@return number number representation of the money value.
+function util:convertMoneyToString(arg)
+  -- Tables to store possible labels for each metal in different languages
+  local labels = {
+    Gold = { L["Gold"] },
+    Silver = { L["Silver"] },
+    Copper = { L["Copper"] }
+  }
+
+  -- Function to find the metal type based on the label
+  local function findMetalType(label)
+    for metal, translations in pairs(labels) do
+      for _, translation in ipairs(translations) do
+        if label == translation then
+          return metal
+        end
+      end
+    end
+    return nil
+  end
+
+  -- Table to store the extracted numbers with labels
+  local amounts = {}
+
+  -- Pattern to match numbers followed by their labels
+  local pattern = "(%d+)%s*(%a+)"
+
+  -- Function to extract numbers and their labels
+  for number, label in string.gmatch(arg, pattern) do
+    local metalType = findMetalType(label)
+    if metalType then
+      amounts[metalType] = tonumber(number)
+    end
+  end
+
+  -- Accessing the values by their labels
+  local gold = amounts[L["Gold"]] or 0
+  local silver = amounts[L["Silver"]] or 0
+  local copper = amounts[L["Copper"]] or 0
+  return tonumber(gold .. silver .. copper) or 0
+end
