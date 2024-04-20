@@ -1,7 +1,6 @@
----@diagnostic disable: duplicate-set-field,duplicate-doc-field,duplicate-doc-alias
 local addonName = ... ---@type string
 
----@class DLT_Addon: AceAddon
+---@class Addon
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
 ---@class Localisation: AceModule
@@ -31,6 +30,10 @@ local minimap = addon:GetModule("Minimap")
 ---@class Options: AceModule
 local options = addon:GetModule("Options")
 
+---@class ShortyUtil: AceModule
+local ShortyUtil = addon:GetModule("ShortyUtil")
+
+
 ---@class Recording: AceModule
 local recording = addon:GetModule("Recording")
 
@@ -50,7 +53,10 @@ function addon:OnEnable()
   mainFrame:Enable()
   minimap:Enable()
   recording:Enable()
-  -- dlt_archivist:Enable() -- TODO Saving for later
+  options:Enable()
+  events:Enable()
+  database:Enable()
+  rDB:Enable()
 
   for _, v in pairs(_slashCmds) do
     addon:RegisterChatCommand(v, "slashCommand")
@@ -66,8 +72,7 @@ function addon:OnDisable()
   addon:Disable()
 end
 
----Event handle for slashCommand
----@param self self
+---Slash Command Handler
 ---@param msg string
 function addon:slashCommand(msg)
   if not msg or strtrim(msg) == "" then
@@ -111,6 +116,7 @@ function addon:openOptions()
 end
 
 ---RefreshConfig
-function addon.RefreshConfig()
-  AceConfigRegistry:NotifyChange(addon.Metadata.AddonName)
+function addon:RefreshConfig()
+  LibStub("AceConfig-3.0"):NotifyChange(addonName)
+  -- AceConfigRegistry:NotifyChange(addon.Metadata.AddonName)
 end
