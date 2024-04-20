@@ -1,6 +1,6 @@
 local addonName = ... ---@type string
 
----@class DLT_Addon: AceAddon
+---@class Addon
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
 ---@class Localisation: AceModule
@@ -30,11 +30,8 @@ local minimapOptions = addon:GetModule("MinimapOptions")
 ---@class Options: AceModule
 local options = addon:NewModule("Options")
 
-local GUI = LibStub("AceGUI-3.0")
-
----@type AceConfig.OptionsTable
 function options:GetInfoOptions()
-  local options = {
+  local opt = {
     type = "group",
     name = "About this AddOn",
     order = 5,
@@ -57,14 +54,13 @@ function options:GetInfoOptions()
       }
     }
   }
-  return options
+  return opt
 end
 
 function options:GetOptions()
-  ---@type AceConfig.OptionsTable
-  local options = {
+  local opt = {
     type = "group",
-    name = L:G(addon.Metadata.Title),
+    name = L["AddonName"],
     args = {
       general = generalOptions:GetGeneralOptions(),
       recording = recordingOpts:GetRecordingOptions(),
@@ -72,7 +68,7 @@ function options:GetOptions()
       info = self:GetInfoOptions()
     }
   }
-  return options
+  return opt
 end
 
 function options:OnEnable()
