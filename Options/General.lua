@@ -12,7 +12,6 @@ local DB = addon:GetModule("Database")
 ---@class GeneralOptions: AceModule
 local genOpts = addon:NewModule("GeneralOptions")
 
----@type AceConfig.OptionsTable
 local options = {
   name = "General",
   handler = addon,
