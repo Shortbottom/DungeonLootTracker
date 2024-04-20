@@ -1,4 +1,7 @@
-local addonName, addon = ... -- luacheck: ignore  -- Warns about overwriting addon before it's used but at this point it doesn't contain anything
+local addonName = ... ---@type string
+
+---@class Addon
+local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
 addon.Libs = {}
 local libs = addon.Libs
