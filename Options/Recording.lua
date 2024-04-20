@@ -13,7 +13,6 @@ local DB = addon:GetModule("Database")
 ---@class RecordingOpts: AceModule
 local recordingOpts = addon:NewModule("RecordingOpts")
 
----@type AceConfig.OptionsTable
 local options = {
   name = "Recording",
   handler = addon,
