@@ -1,6 +1,6 @@
 local addonName = ... ---@type string
 
----@class DLT_Addon: AceAddon
+---@class Addon: AceMessage
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
 
 ---@class ShortyUtil: AceModule
@@ -9,22 +9,26 @@ local ShortyUtil = addon:GetModule("ShortyUtil")
 ---@class Database: AceModule
 local db = addon:GetModule("Database")
 
----@alias eventData any[][]
+---@class Events: AceEvent
+local events = addon:NewModule("Events")
 
----@class Events: AceModule
----@field EventToRegister string # The blizzard event to listen for
----@field MethodToCall string # The method to call when the event happens
+
 local _autoRecordEvents = {
-  -- ["PLAYER_ENTERING_WORLD"] = "EnterWorld", -- This is the event we want to watch if autoRecord is true
-  -- ["PLAYER_LEAVING_WORLD"] = "LeaveWorld"   -- This might be the better event to stop recording when autoRecord is true
+  ["PLAYER_ENTERING_WORLD"] = "EnterWorld", -- This is the event we want to watch if autoRecord is true
+  ["PLAYER_LEAVING_WORLD"] = "LeaveWorld"   -- This might be the better event to stop recording when autoRecord is true
 }
+
 local _recordingEvents = {
   ["LOOT_READY"] = function () addon:SendMessage("recording/lootReady") end,
   ["LOOT_CLOSED"] = function () addon:SendMessage("recording/lootClosed") end,
-  ["LOOT_SLOT_CLEARED"] = function () addon:SendMessage("recording/lootSlotCleared") end
+  ["LOOT_SLOT_CLEARED"] =
+  ---Sends a message indicating that a loot slot has been cleared.
+  ---@param _ ignored - The first parameter (ignored).
+  ---@param lootSlot number - The loot slot that has been cleared.
+      function (_, lootSlot)
+        addon:SendMessage("recording/lootSlotCleared", lootSlot)
+      end
 }
-
-local events = addon:NewModule("Events")
 
 LibStub("AceEvent-3.0"):Embed(events)
 
@@ -35,8 +39,9 @@ function events:OnInitialize()
   -- end
 end
 
-function events:EnterWorld(event, initialLogin, reload, ...)
-  local inInstance, instanceType = IsInInstance()
+function events:EnterWorld(_, initialLogin, reload, ...)
+  local _x = ...
+  local _inInstance, _instanceType = IsInInstance()
 
   if db:GetAutoRecord() then
     addon:Print("We want to autoRecord")
@@ -53,8 +58,8 @@ function events:LeaveWorld(...)
 end
 
 function events:OnDisable()
-  for k, v in pairs(_eventsToRegiser) do
-    events:UnRegisterEvent(k, v)
+  for k, v in pairs(_autoRecordEvents) do
+    events:UnregisterEvent(k, v)
   end
 end
 
