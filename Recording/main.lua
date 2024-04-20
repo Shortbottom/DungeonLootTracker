@@ -1,7 +1,10 @@
 local addonName = ... ---@type string
 
----@class DLT_Addon: AceAddon
+---@class Addon
 local addon = LibStub("AceAddon-3.0"):GetAddon(addonName)
+
+---@class Constants: AceModule
+local const = addon:GetModule("Constants")
 
 ---@class Database: AceModule
 local DB = addon:GetModule("Database")
@@ -15,12 +18,14 @@ local ShortyUtil = addon:GetModule("ShortyUtil")
 ---@class Events: AceModule
 local events = addon:GetModule("Events")
 
----@class Recording: AceModule
+---@class Locales: AceModule
+local L = LibStub("AceLocale-3.0"):GetLocale(addonName)
+
+---@class Recording: AceMessage
 local recording = addon:NewModule("Recording")
 
 LibStub("AceEvent-3.0"):Embed(recording)
 
----@class Message: AceMessage
 local messagesToRegister = {
   ["recording/startRecording"] = "startNewRecording",
   ["recording/stopRecording"] = "stopRecording",
@@ -30,7 +35,8 @@ local messagesToRegister = {
   ["recording/lootSlotCleared"] = "lootSlotCleared"
 }
 
-local lootTable = lootTable or {}
+-- ---@type table
+-- local lootTable = lootTable or {}
 
 function recording:OnInitialize()
   -- Info: Messages are what the AddOn use to trigger internal events
@@ -40,17 +46,12 @@ function recording:OnInitialize()
 
   -- Hide the stop recording button
   _G["DLT_Parent_StopRecordingBtn"]:Hide()
-end
 
----When the player loots, we want to go through and find out what there was and make an entry in the table
----@param n number The number of items (incl. gold being looted)
----@param t table The table containing everything that is being looted
----@return boolean
-function recording:collectLoot(n, t)
+  addon.currentLootTable = {}
 end
 
 function recording:startNewRecording(x, ...)
-  local self, t = x, ...
+  local _, _ = x, ...
   local startBtn = _G["DLT_Parent_StartRecordingBtn"]
   local stopBtn = _G["DLT_Parent_StopRecordingBtn"]
 
@@ -63,10 +64,16 @@ function recording:startNewRecording(x, ...)
   stopBtn:Show()
 
   local newID = rDB:GetNewID()
+
+
+
+  --[[@do-not-package@--]]
+  ---@diagnostic disable-next-line: unused-local --@end-do-not-package@
   local instanceName, instanceType, difficultyID, difficultyName, maxPlayers, dynamicDifficulty, isDynamic, instanceID, instanceGroupSize, LfgDungeonID
   local isInstance, _ = IsInInstance()
 
   if isInstance then
+    ---@diagnostic disable-next-line: unused-local
     instanceName, instanceType, difficultyID, difficultyName, maxPlayers, dynamicDifficulty, isDynamic, instanceID, instanceGroupSize, LfgDungeonID = GetInstanceInfo()
   else
     -- Player isn't in an instance, so we need to get the various information a different way
@@ -85,7 +92,7 @@ function recording:startNewRecording(x, ...)
     isInstance = isInstance,
     difficultyID = difficultyID,
     startTime = recordStartTime,
-    endTime = 0,
+    endTime = recordEndTime,
     timeDiff = 0,
     playerMoneyStart = playerMoney,
     playerMoneyEnd = 0,
@@ -100,8 +107,7 @@ function recording:startNewRecording(x, ...)
 end
 
 --- Stops the recording process.
----@param ... varargs A number of args passed.
-function recording:stopRecording(...)
+function recording:stopRecording()
   local startBtn = _G["DLT_Parent_StartRecordingBtn"]
   local stopBtn = _G["DLT_Parent_StopRecordingBtn"]
   if DLT_Parent_.recording ~= true then return end -- Can't stop recording if we aren't recording in the first place
@@ -119,59 +125,113 @@ function recording:stopRecording(...)
     tbl.endTime = e
     tbl.timeDiff = ShortyUtil:convertSecsToReadable(e - s)
 
+    --#region Record Money
+    -- INFO: We can record how much money the player has received during the recording here, only issue would be that
+    -- INFO: this would also record any money they have collected from mail (AH sales inc.) or other sources that aren't
+    -- INFO: directly related to the recording.
+    -- Question: What should we count as money earned during the recording? Immediate answer is any looted money
+    -- Question: and money from selling items to a vendor. How would we know if an item was sold on the AH?
+    -- Question: Surely an item looted during a recording and sold on the AH after the recording should be counted?
+    -- * For the moment I think i'll just accrue the money as they loot it.
     -- Record the Player's money at the end of the recording so we can track how much they made
-    local playerMoney = GetMoney()
-    tbl.playerMoneyEnd = playerMoney
-    tbl.playerMoneyDiff = playerMoney - tbl.playerMoneyStart
+    --[[
+      local playerMoney = GetMoney()
+      tbl.playerMoneyEnd = playerMoney
+      tbl.playerMoneyDiff = playerMoney - tbl.playerMoneyStart
 
-    -- I: If the player has chosen to print the amount of gold earned during the recording then we will do so
-    if DB.GetPrintMoneyEarned() then
-      if tbl.playerMoneyDiff == 0 then
-        addon:Print("You didn't earn anything during this recording")
-      else
-        addon:Print("Earned during this recording: ", GetMoneyString(tbl.playerMoneyDiff, true))
+      -- Info: If the player has chosen to print the amount of gold earned during the recording then we will do so
+      if DB.GetPrintMoneyEarned() then
+        if tbl.playerMoneyDiff == 0 then
+          addon:Print("You didn't earn anything during this recording")
+        else
+          addon:Print("Earned during this recording: ", GetMoneyString(tbl.playerMoneyDiff, true))
+        end
       end
-    end
+      --]]
+    --#endregion
   else
     -- ! If we end up in here then there has been some sort of error
-    error("No Currrent Rec ID:- Got(" .. (currentRecID == nil and "nil" or currentRecID) .. ")", 1)
+    error("No Current Rec ID:- Got(" .. (currentRecID == nil and "nil" or currentRecID) .. ")", 1)
   end
 
   -- INFO: The last thing we want to do is stop listening to the events
   events:stopRecording_Events()
 end
 
-function recording:showList(x, ...)
+function recording:showList(_x, _)
   addon:Print("Showing List")
 end
 
 function recording:lootReady()
-  addon:Print("Updating the Loot Table")
-  local n = GetNumLootItems()
-  addon:Print("n: ", n)
-  lootTable = GetLootInfo()
-  addon:Print(ShortyUtil:table_to_json(lootTable))
+  addon:Print("Loot Ready")
+  local lootTable = GetLootInfo() or {}
+  addon.lootTable = recording:BuildLootTable(lootTable)
 end
 
 -- We will loop through the loot and add it to the table
-function recording:lootSlotCleared()
-  local recordID = addon.currentRecID
-  local n = GetNumLootItems()
-  local info = GetLootInfo()
+function recording:lootSlotCleared(_, slot)
+  if addon.lastSlotLooted == slot then return end -- We have already looted this slot
+  addon:Print("Loot Slot Cleared: ", slot)        -- Slot that was looted
 
-  for i, slot in pairs(info) do
-    local lootType = GetLootSlotType(i)
-    local lootIcon, lootName, lootQuantity, currencyID, lootQuality, locked, isQuestItem, questID, isActive = GetLootSlotInfo(i)
-    -- We are only interested if this isn't money
-    if lootType ~= Enum.LootSlotType.Money then
-      addon:Print("Looting items")
-    end
-    local itemLink = GetLootSlotLink(i)
-  end
-
-  --local x = recording:collectLoot(n, t)
+  local _recordID = addon.currentRecID            -- RecordID that we need to add the loot to
 end
 
 function recording:lootClosed()
   addon:Print("Loot Closed")
+end
+
+function recording:BuildLootTable(lootTable)
+  addon.currentLootTable = lootTable or {}
+  for slot = 1, GetNumLootItems() do
+    -- Get info about this lootSlot
+    ---@diagnostic disable-next-line: unused-local
+    local lootIcon, lootName, lootQuantity, currencyID, lootQuality, locked, isQuestItem, questID, isActive = GetLootSlotInfo(slot)
+    local _slotType = GetLootSlotType(slot)
+    local _itemLink = GetLootSlotLink(slot)
+
+    ---@class ItemList
+    local item = const.RECORD_ITEM_DEFAULTS or {}
+  end
+
+
+
+  for slot, _v in pairs(lootTable) do
+    ---@type number, number
+    local item = {}
+    ---@diagnostic disable-next-line: unused-local
+    local itemID, itemType, itemSubType = 0, 0, 0
+    ---@diagnostic disable-next-line: unused-local
+    local lootIcon, lootName, itemQuantity, currencyID, itemQuality, _, _, _, _ = GetLootSlotInfo(slot)
+    local classID, subClassID, value = 0, 0, 0
+    ---@type LootSlotType
+    local slotType = GetLootSlotType(slot)
+
+    if (slotType == Enum.LootSlotType.Money) then
+      itemID = 0
+      value = ShortyUtil:convertMoneyToString(lootName) -- ? Should this be stored in quantity? or somewhere else?
+      lootName = L["Money"]
+    elseif (slotType == Enum.LootSlotType.Item) then
+      local itemLink = GetLootSlotLink(slot)
+      itemID, _, _, _, _, classID, subClassID = C_Item.GetItemInfoInstant(itemLink)
+    elseif (slotType == Enum.LootSlotType.Currency) then -- This is for things like Honor, Conquest, etc
+      itemID = currencyID                                -- currencyID is essentially the same as itemID is for items
+    elseif (slotType == Enum.LootSlotType.None) then
+      addon:Print(L["No Loot in Slot: "], slot)
+    else
+      addon:Print(L["Unknown Slot Type: "], slotType)
+    end
+
+    item.slotType = slotType
+    item.itemID = itemID
+    item.icon = lootIcon
+    item.quality = itemQuality
+    item.quantity = itemQuantity
+    item.value = value -- TODO: Get the item from an AH addon if the player has one installed or maybe somewhere else
+    item.keep = true   -- Info: Set to true so we don't accidentally vendor it. Vendoring it should be a conscious decision
+    item.classID = classID
+    item.subClassID = subClassID
+
+
+    table.insert(addon.currentLootTable, slot, item)
+  end
 end
