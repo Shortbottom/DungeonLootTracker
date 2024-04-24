@@ -11,7 +11,10 @@ libs.AceConfig = "AceConfig-3.0"
 libs.AceConfigDialog = "AceConfigDialog-3.0"
 libs.AceConsole = "AceConsole-3.0"
 libs.AceDBOptions = "AceDBOptions-3.0"
+libs.AceHook = "AceHook-3.0"
 libs.LibDBIcon = "LibDBIcon-1.0"
+libs.AceGUI = "AceGUI-3.0"
 libs.ShortyUtil = "Shorty_Util"
 
-addon.Util = LibStub(addon.Libs.ShortyUtil)
+addon.Libs = libs
+-- addon.Util = LibStub(addon.Libs.ShortyUtil)
