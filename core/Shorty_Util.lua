@@ -29,7 +29,7 @@ end
 --- @param pre_fix string # prefix string.
 function util:tprint(tbl, pre_fix)
   pre_fix = pre_fix or ""
-  print(util:table_to_json(tbl))
+  --print(util:table_to_json(tbl))
   local _tbl = util:TableToString(tbl)
   _tbl = string.gsub(_tbl, "{ { ", "\n{\n " .. fastrandom() .. " {\n    "):gsub(" }, ", "\n  },\n  "):gsub(" }", "\n  }\n}"):gsub(", ", ",\n   ")
   print(pre_fix, _tbl)
@@ -391,7 +391,7 @@ end
 ---and converts it to a string in the form of "X.Y.Z". WoW stores the player money if the form of 000000
 ---@param arg string money value to convert.
 ---@return number number representation of the money value.
-function util:convertMoneyToString(arg)
+function util:ParseMoneyString(arg)
   -- Tables to store possible labels for each metal in different languages
   local labels = {
     Gold = { L["Gold"] },
@@ -430,4 +430,83 @@ function util:convertMoneyToString(arg)
   local silver = amounts[L["Silver"]] or 0
   local copper = amounts[L["Copper"]] or 0
   return tonumber(gold .. silver .. copper) or 0
+end
+
+local simpleTypes = {
+  itemID = 1,
+  enchantID = 2,
+  suffixID = 7,
+  uniqueID = 8,
+  linkLevel = 9,
+  specializationID = 10,
+  modifiersMask = 11,
+  itemContext = 12,
+}
+
+---Parses the item link and returns a table with the item's information.
+---@param link string Item link to parse.
+---@return table
+function util:ParseItemLink(link)
+  local _, linkOptions = LinkUtil.ExtractLink(link)
+  local item = { strsplit(":", linkOptions) }
+  local t = {}
+
+  for k, v in pairs(simpleTypes) do
+    t[k] = tonumber(item[v])
+  end
+
+  for i = 1, 4 do
+    local gem = tonumber(item[i + 2])
+    if gem then
+      t.gems = t.gems or {}
+      t.gems[i] = gem
+    end
+  end
+
+  local idx = 13
+  local numBonusIDs = tonumber(item[idx])
+  if numBonusIDs then
+    t.bonusIDs = {}
+    for i = 1, numBonusIDs do
+      t.bonusIDs[i] = tonumber(item[idx + i])
+    end
+  end
+  idx = idx + (numBonusIDs or 0) + 1
+
+  local numModifiers = tonumber(item[idx])
+  if numModifiers then
+    t.modifiers = {}
+    for i = 1, numModifiers do
+      local offset = i * 2
+      t.modifiers[i] = {
+        tonumber(item[idx + offset - 1]),
+        tonumber(item[idx + offset])
+      }
+    end
+    idx = idx + numModifiers * 2 + 1
+  else
+    idx = idx + 1
+  end
+
+  for i = 1, 3 do
+    local relicNumBonusIDs = tonumber(item[idx])
+    if relicNumBonusIDs then
+      t.relicBonusIDs = t.relicBonusIDs or {}
+      t.relicBonusIDs[i] = {}
+      for j = 1, relicNumBonusIDs do
+        t.relicBonusIDs[i][j] = tonumber(item[idx + j])
+      end
+    end
+    idx = idx + (relicNumBonusIDs or 0) + 1
+  end
+
+  local crafterGUID = item[idx]
+  if #crafterGUID > 0 then
+    t.crafterGUID = crafterGUID
+  end
+  idx = idx + 1
+
+  t.extraEnchantID = tonumber(item[idx])
+
+  return t
 end
