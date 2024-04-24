@@ -66,7 +66,7 @@ function minimapOptions:GetMinimapOptions()
         get = function () return DB:GetMinimapPos() end,
         set = function (_, value)
           DB:SetMinimapPos(value)
-          minimap:SetPosition(value)
+          minimapOptions.SetPosition()
         end
       },
       --[[ Not using til bugs are sorted out
@@ -126,7 +126,7 @@ function minimapOptions:HideInCompartment()
 
 end
 
-function minimapOptions:SetPosition()
+function minimapOptions.SetPosition()
   addon.minimapIcon:Refresh(const.miniMapBtnName, DB:GetData().profile.minimap)
 end
 
