@@ -31,12 +31,11 @@ local messagesToRegister = {
   ["recording/stopRecording"] = "stopRecording",
   ["recording/showList"] = "showList",
   ["recording/lootReady"] = "lootReady",
-  ["recording/lootClosed"] = "lootClosed",
-  ["recording/lootSlotCleared"] = "lootSlotCleared"
+  ["recording/lootOpened"] = "lootOpened",
+  ["recording/lootSlotChanged"] = "lootSlotChanged",
+  ["recording/lootSlotCleared"] = "lootSlotCleared",
+  ["recording/lootClosed"] = "lootClosed"
 }
-
--- ---@type table
--- local lootTable = lootTable or {}
 
 function recording:OnInitialize()
   -- Info: Messages are what the AddOn use to trigger internal events
@@ -48,6 +47,10 @@ function recording:OnInitialize()
   _G["DLT_Parent_StopRecordingBtn"]:Hide()
 
   addon.currentLootTable = {}
+end
+
+function recording:ItemLooted()
+  addon:Print("Item Looted")
 end
 
 function recording:startNewRecording(x, ...)
@@ -65,16 +68,12 @@ function recording:startNewRecording(x, ...)
 
   local newID = rDB:GetNewID()
 
-
-
-  --[[@do-not-package@--]]
-  ---@diagnostic disable-next-line: unused-local --@end-do-not-package@
-  local instanceName, instanceType, difficultyID, difficultyName, maxPlayers, dynamicDifficulty, isDynamic, instanceID, instanceGroupSize, LfgDungeonID
+  local _instanceName, _instanceType, difficultyID, _difficultyName, _maxPlayers, _dynamicDifficulty, _isDynamic, instanceID, _instanceGroupSize, _LfgDungeonID
   local isInstance, _ = IsInInstance()
 
   if isInstance then
-    ---@diagnostic disable-next-line: unused-local
-    instanceName, instanceType, difficultyID, difficultyName, maxPlayers, dynamicDifficulty, isDynamic, instanceID, instanceGroupSize, LfgDungeonID = GetInstanceInfo()
+    _instanceName, _instanceType, difficultyID, _difficultyName, _maxPlayers, _dynamicDifficulty, _isDynamic, instanceID, _instanceGroupSize, LfgDungeonID =
+        GetInstanceInfo()
   else
     -- Player isn't in an instance, so we need to get the various information a different way
     instanceID = C_Map.GetBestMapForUnit("player")
@@ -84,9 +83,11 @@ function recording:startNewRecording(x, ...)
   local recordEndTime = 0
   local playerMoney = GetMoney()
 
-  -- INFO: We need to save the record to the database
+  -- Set the table to initial values then we can overwrite them with the new values, this way it should always hold
+  -- the correct values
   ---@type RecordList
-  local t = {
+  local t = const.RECORD_LIST_DEFAULTS
+  t = {
     recordID = newID,
     instanceID = instanceID,
     isInstance = isInstance,
@@ -97,12 +98,13 @@ function recording:startNewRecording(x, ...)
     playerMoneyStart = playerMoney,
     playerMoneyEnd = 0,
     playerMoneyDiff = 0,
+    goldLooted = 0,
     items = {}
   }
 
   rDB:SaveNewRecord(newID, t)
 
-  -- Think we should just tell the events module to register the events
+  -- Tell the events module to register the events
   events:startRecording_Events()
 end
 
@@ -132,7 +134,7 @@ function recording:stopRecording()
     -- Question: What should we count as money earned during the recording? Immediate answer is any looted money
     -- Question: and money from selling items to a vendor. How would we know if an item was sold on the AH?
     -- Question: Surely an item looted during a recording and sold on the AH after the recording should be counted?
-    -- * For the moment I think i'll just accrue the money as they loot it.
+    -- ! For the moment I think i'll just accrue the money as they loot it.
     -- Record the Player's money at the end of the recording so we can track how much they made
     --[[
       local playerMoney = GetMoney()
@@ -164,74 +166,127 @@ end
 
 function recording:lootReady()
   addon:Print("Loot Ready")
-  local lootTable = GetLootInfo() or {}
-  addon.lootTable = recording:BuildLootTable(lootTable)
+  addon.currentLootTable = {}
+  for slot = 1, GetNumLootItems() do
+    local lootIcon, lootName, lootQuantity, currencyID, lootQuality, locked, isQuestItem, questID, isActive = GetLootSlotInfo(slot)
+    local slotType = GetLootSlotType(slot)
+    local itemID, itemLink, value = 0, "", 0
+    if slotType == Enum.LootSlotType.Money then
+      value = ShortyUtil:ParseMoneyString(lootName)
+    elseif slotType == Enum.LootSlotType.Item then
+      itemLink = GetLootSlotLink(slot)
+      local parsedItem = ShortyUtil:ParseItemLink(itemLink)
+      itemID = parsedItem.itemID
+    elseif slotType == Enum.LootSlotType.Currency then
+      -- TODO: Add currency to the table
+      addon:Print("Currency: ", lootName)
+    elseif slotType == Enum.LootSlotType.None then
+      addon:Print("No Loot in Slot: ", slot)
+    end
+    -- Set the item to the default values and then overwrite with the new values. This way we can be sure that the table will always have the correct keys|values
+    local item = const.RECORD_ITEM_DEFAULTS
+    item = {
+      slotType = slotType,
+      itemID = itemID,
+      itemName = lootName,
+      texture = lootIcon,
+      quality = lootQuality,
+      quantity = lootQuantity,
+      value = value,
+      keep = true,
+      looted = false,
+      currencyID = currencyID,
+      locked = locked,
+      isQuestItem = isQuestItem,
+      questID = questID,
+      isActive = isActive,
+      classID = 0,
+      subClassID = 0,
+      itemLink = itemLink
+    }
+    if item then
+      table.insert(addon.currentLootTable, item)
+    end
+  end
 end
 
--- We will loop through the loot and add it to the table
+-- We will add the looted slot to the table
 function recording:lootSlotCleared(_, slot)
-  if addon.lastSlotLooted == slot then return end -- We have already looted this slot
-  addon:Print("Loot Slot Cleared: ", slot)        -- Slot that was looted
+  addon:Print("Loot Slot Cleared: ", slot)
 
-  local _recordID = addon.currentRecID            -- RecordID that we need to add the loot to
+  -- Make sure we have a loot table to work from
+  assert(addon.currentLootTable, "No Loot Table to work from.")
+
+  -- We have already looted this slot, this is because if the item exists across multiple mobs the slot_cleared event will trigger for each mob
+  if addon.lastSlotLooted == slot then return end
+
+  local recordID = addon.currentRecID -- RecordID that we need to add the loot to
+
+  local slotInfo = addon.currentLootTable[slot]
+  if slotInfo.slotType == const.LootSlotType.Money then -- If the slot is money then we need to add the value to the goldLooted
+    slotInfo.looted = true                              -- We have looted the money
+    slotInfo.keep = true                                -- We can't sell money
+    addon.lastSlotLooted = slot
+    rDB:SaveNewGoldLooted(recordID, slotInfo.value)
+  elseif slotInfo.slotType == const.LootSlotType.Item then
+    slotInfo.looted = true
+    slotInfo.keep = true
+    addon.lastSlotLooted = slot
+    rDB:SaveNewItem(recordID, slotInfo)
+  end
 end
 
 function recording:lootClosed()
   addon:Print("Loot Closed")
 end
 
-function recording:BuildLootTable(lootTable)
-  addon.currentLootTable = lootTable or {}
-  for slot = 1, GetNumLootItems() do
-    -- Get info about this lootSlot
-    ---@diagnostic disable-next-line: unused-local
-    local lootIcon, lootName, lootQuantity, currencyID, lootQuality, locked, isQuestItem, questID, isActive = GetLootSlotInfo(slot)
-    local _slotType = GetLootSlotType(slot)
-    local _itemLink = GetLootSlotLink(slot)
+function recording:lootSlotChanged(_, slot)
+  addon:Print("recording:lootSlotChanged: ", slot)
+  recording:UpdateLootTable(slot)
+end
 
-    ---@class ItemList
-    local item = const.RECORD_ITEM_DEFAULTS or {}
+function recording:lootOpened()
+  addon:Print("Loot Opened")
+  if #addon.currentLootTable == 0 then
+    recording:lootReady()
+  end
+end
+
+--[[
+  ?? There doesn't seem to really be any real way other than looking at the chat_message to know if something was picked up<br>
+  ?? Do I just assume if an item isn't in the loot table then it was picked up?<br>
+  ?? Loot_Changed and Loot_Cleared also trigger if loot on a mob is not picked up and left to de-spawn<br>
+  ?? Using the Chat_Loot_Message isn't guaranteed to work as the player could have it turned off and using it would require localisation support<br>
+  ?? How likely is it that someone will have the loot window open and not loot long enough for the item to de-spawn?<br>
+  Something has changed find out what
+  Update the loot table with the new quantity of the item in the slot.
+  Assume if it's not in the new loot table it's because it has been picked up
+--]]
+---@param slot number
+function recording:UpdateLootTable(slot)
+  addon:Print("UpdateLootTable: ", slot)
+
+  -- If the loot table is empty (meaning it has 0 entries/length) then we can't update anything
+  if #addon.currentLootTable == 0 then return end
+
+  -- Loop through our loot table to see if the slot is in there already
+  local slotInfo
+  for _, s in ipairs(addon.currentLootTable) do
+    if s.slot == slot then
+      slotInfo = s
+    end
+  end
+  if slotInfo == nil then
+    return
   end
 
+  -- Get the new quantity of the item in the slot
+  local oldQuantity = slotInfo.quantity
+  local newQuantity = select(3, GetLootSlotInfo(slot))
 
-
-  for slot, _v in pairs(lootTable) do
-    ---@type number, number
-    local item = {}
-    ---@diagnostic disable-next-line: unused-local
-    local itemID, itemType, itemSubType = 0, 0, 0
-    ---@diagnostic disable-next-line: unused-local
-    local lootIcon, lootName, itemQuantity, currencyID, itemQuality, _, _, _, _ = GetLootSlotInfo(slot)
-    local classID, subClassID, value = 0, 0, 0
-    ---@type LootSlotType
-    local slotType = GetLootSlotType(slot)
-
-    if (slotType == Enum.LootSlotType.Money) then
-      itemID = 0
-      value = ShortyUtil:convertMoneyToString(lootName) -- ? Should this be stored in quantity? or somewhere else?
-      lootName = L["Money"]
-    elseif (slotType == Enum.LootSlotType.Item) then
-      local itemLink = GetLootSlotLink(slot)
-      itemID, _, _, _, _, classID, subClassID = C_Item.GetItemInfoInstant(itemLink)
-    elseif (slotType == Enum.LootSlotType.Currency) then -- This is for things like Honor, Conquest, etc
-      itemID = currencyID                                -- currencyID is essentially the same as itemID is for items
-    elseif (slotType == Enum.LootSlotType.None) then
-      addon:Print(L["No Loot in Slot: "], slot)
-    else
-      addon:Print(L["Unknown Slot Type: "], slotType)
-    end
-
-    item.slotType = slotType
-    item.itemID = itemID
-    item.icon = lootIcon
-    item.quality = itemQuality
-    item.quantity = itemQuantity
-    item.value = value -- TODO: Get the item from an AH addon if the player has one installed or maybe somewhere else
-    item.keep = true   -- Info: Set to true so we don't accidentally vendor it. Vendoring it should be a conscious decision
-    item.classID = classID
-    item.subClassID = subClassID
-
-
-    table.insert(addon.currentLootTable, slot, item)
+  -- Check to see if the quantity has changed and if so figure out what is has changed by then update the table
+  if newQuantity ~= oldQuantity then
+    slotInfo.lastQuantityShift = oldQuantity - newQuantity
+    slotInfo.quantity = newQuantity
   end
 end
