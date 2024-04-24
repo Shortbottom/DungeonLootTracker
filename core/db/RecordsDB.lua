@@ -13,8 +13,8 @@ local db = addon:GetModule("Database")
 local recordsDB = addon:NewModule("RecordsDB")
 
 function recordsDB:OnInitialize()
-  DltRecordings_DB = DltRecordings_DB or { totalRecordings = 0, lastUsedID = 0, records = {} }
-  recordsDB.data = DltRecordings_DB
+  DLTRecordings_DB = DLTRecordings_DB or { totalRecordings = 0, lastUsedID = 0, records = {} }
+  recordsDB.data = DLTRecordings_DB
 end
 
 ---Returns the next ID to use
@@ -39,6 +39,20 @@ function recordsDB:SaveNewRecord(id, tbl)
   return success
 end
 
+function recordsDB:SaveNewItem(id, tbl)
+  table.insert(recordsDB.data.records[id].items, tbl)
+end
+
+function recordsDB:SaveNewGoldLooted(id, value)
+  -- Somehow we have ended up trying to add to a record that doesn't exist
+  if recordsDB.data.records[id] == nil then return false end
+
+  -- Get the gold looted till now
+  local currentGold = recordsDB.data.records[id].goldLooted or 0 -- Get the value and if for some reason it doesn't exist, set it to 0
+  local newGold = currentGold + value
+  recordsDB.data.records[id].goldLooted = newGold
+end
+
 ---Returns the index position of the provided id
 ---@param id number
 ---@return number
@@ -49,4 +63,12 @@ function recordsDB:GetIndex(id)
   return 0
 end
 
+--@do-not-package@
+function recordsDB:wipeRecords()
+  recordsDB.data.records = {}
+  recordsDB.data.totalRecordings = 0
+  recordsDB.data.lastUsedID = 0
+end
+
+--@end-do-not-package@
 recordsDB:Enable()
