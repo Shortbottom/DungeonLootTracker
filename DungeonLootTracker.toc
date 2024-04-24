@@ -2,7 +2,7 @@
 ## Version: @project-version@
 ## Title: Dungeon Loot Tracker
 ## Notes: Tracking items picked in Dungeon and easily sell them.
-## SavedVariables: dltDB, dltRecordings_DB
+## SavedVariables: dltDB, DLTRecordings_DB
 ## Author: Shortbottom
 ## IconTexture: Interface\AddOns\DungeonLootTracker\Images\icon
 ## X-Acronym: DLT
