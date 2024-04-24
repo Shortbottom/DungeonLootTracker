@@ -63,6 +63,14 @@ const.ITEM_QUALITY_COLOR = {
   [Enum.ItemQuality.WoWToken] = { 0, 0.8, 1, 1 }
 }
 
+---@enum LootSlotType
+const.LootSlotType = {
+  None = 0,
+  Item = 1,
+  Money = 2,
+  Currency = 3
+}
+
 ---@type string Name of the minimap button
 const.miniMapBtnName = addon.Metadata.Acronym .. "_MinimapBtn"
 
@@ -72,12 +80,14 @@ const.miniMapBtnName = addon.Metadata.Acronym .. "_MinimapBtn"
 const.RECORD_LIST_DEFAULTS = {
   recordID = 0,
   instanceID = "",
+  isInstance = false,
   startTime = 0,
   endTime = 0,
   timeDiff = 0,
   playerMoneyStart = 0,
   playerMoneyEnd = 0,
   playerMoneyDiff = 0,
+  goldLooted = 0,
   items = { const.RECORD_ITEM_DEFAULTS }
 }
 
@@ -85,6 +95,9 @@ const.RECORD_LIST_DEFAULTS = {
 --- ?: [Keep]: When do I set this flag? If I set it on pickup then if the player changes their settings after a recording then<br>this should use the old setting if they then use this AddOn to vendor items from the recording.<br>
 --- TODO: [value] Possibly build in support for AH AddOn values
 
+---This table contains the default values for recording an item.
+---Each key represents a specific property of the item.
+---The values are initialized to their default values.
 ---@class ItemList
 const.RECORD_ITEM_DEFAULTS = {
   slotType = 0,
@@ -96,6 +109,12 @@ const.RECORD_ITEM_DEFAULTS = {
   value = 0,
   keep = true,
   looted = false,
+  currencyID = 0,
+  locked = false,
+  isQuestItem = false,
+  questID = 0,
+  isActive = false,
   classID = 0,
-  subClassID = 0
+  subClassID = 0,
+  itemLink = ""
 }
