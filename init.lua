@@ -90,10 +90,8 @@ function addon:slashCommand(msg)
     -- ! WE DO NOT WANT THIS MAKING IT INTO THE RELEASE VERSION AS SOMEONE IS BOUND TO "ACCIDENTALLY" USE IT
   elseif msg == "wipe" then
     addon:Print("wiping all data")
-    rDB.data.records = {}
-    rDB.data.lastUsedID = 0
-    rDB.data.totalRecordings = 0
-    --@end-do-not-package@  else
+    rDB:wipeRecords()
+    --@end-do-not-package@
   end
 end
 
