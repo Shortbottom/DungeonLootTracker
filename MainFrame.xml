@@ -60,8 +60,8 @@
         </Scripts>
       </Button>
     </Frames>
-    <Frames>
 
+    <Frames>
       <!-- Start Recording Button -->
       <Button name="$parentStartRecordingBtn" parent="DLT_Parent_">
         <Size x="16" y="16" />
@@ -117,7 +117,19 @@
             </OnClick>
         </Scripts>
       </Button>
+
     </Frames>
+    <Layers>
+      <Layer level="OVERLAY">
+        <FontString name="$parentGoldLooted" parentKey="Text" inherits="SystemFont_Tiny2"
+          text="" justifyH="CENTER" justifyV="MIDDLE">
+          <Anchors>
+            <Anchor point="LEFT" relativeTo="DLT_Parent_ReportWindowBtn" x="20" y="0" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+
     <KeyValues>
       <KeyValue key="recording" value="false" />
     </KeyValues>
