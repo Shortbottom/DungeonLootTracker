@@ -20,7 +20,6 @@ local _autoRecordEvents = {
 
 local _recordingEvents = {
   ["LOOT_READY"] = function () addon:SendMessage("recording/lootReady") end,
-  ["LOOT_CLOSED"] = function () addon:SendMessage("recording/lootClosed") end,
   ["LOOT_OPENED"] = function () addon:SendMessage("recording/lootOpened") end,
   ["LOOT_SLOT_CHANGED"] =
   -- Sends a message to notify that the loot slot has changed.
@@ -73,14 +72,14 @@ function events:OnDisable()
 end
 
 function events:startRecording_Events()
-  addon:Print("Listening to events")
+  --addon:Print("Listening to events")
   for k, v in pairs(_recordingEvents) do
     events:RegisterEvent(k, v)
   end
 end
 
 function events:stopRecording_Events()
-  addon:Print("Stopping listening to events")
+  --addon:Print("Stopping listening to events")
   for k, v in pairs(_recordingEvents) do
     events:UnregisterEvent(k, v)
   end
