@@ -33,8 +33,7 @@ local messagesToRegister = {
   ["recording/lootReady"] = "lootReady",
   ["recording/lootOpened"] = "lootOpened",
   ["recording/lootSlotChanged"] = "lootSlotChanged",
-  ["recording/lootSlotCleared"] = "lootSlotCleared",
-  ["recording/lootClosed"] = "lootClosed"
+  ["recording/lootSlotCleared"] = "lootSlotCleared"
 }
 
 function recording:OnInitialize()
@@ -50,7 +49,7 @@ function recording:OnInitialize()
 end
 
 function recording:ItemLooted()
-  addon:Print("Item Looted")
+  --addon:Print("Item Looted")
 end
 
 function recording:startNewRecording(x, ...)
@@ -60,7 +59,7 @@ function recording:startNewRecording(x, ...)
 
   if DLT_Parent_.recording == true then return end -- In case somehow recording has started we don't want to try and start recording again
 
-  addon:Print("Started Recording")
+  --addon:Print("Started Recording")
 
   DLT_Parent_.recording = true
   startBtn:Hide()
@@ -114,7 +113,7 @@ function recording:stopRecording()
   local stopBtn = _G["DLT_Parent_StopRecordingBtn"]
   if DLT_Parent_.recording ~= true then return end -- Can't stop recording if we aren't recording in the first place
 
-  addon:Print("Stop Recording")
+  --addon:Print("Stop Recording")
   DLT_Parent_.recording = false
   startBtn:Show()
   stopBtn:Hide()
@@ -165,7 +164,7 @@ function recording:showList(_x, _)
 end
 
 function recording:lootReady()
-  addon:Print("Loot Ready")
+  --addon:Print("Loot Ready")
   addon.currentLootTable = {}
   for slot = 1, GetNumLootItems() do
     local lootIcon, lootName, lootQuantity, currencyID, lootQuality, locked, isQuestItem, questID, isActive = GetLootSlotInfo(slot)
@@ -212,7 +211,7 @@ end
 
 -- We will add the looted slot to the table
 function recording:lootSlotCleared(_, slot)
-  addon:Print("Loot Slot Cleared: ", slot)
+  --addon:Print("Loot Slot Cleared: ", slot)
 
   -- Make sure we have a loot table to work from
   assert(addon.currentLootTable, "No Loot Table to work from.")
@@ -220,6 +219,7 @@ function recording:lootSlotCleared(_, slot)
   -- We have already looted this slot, this is because if the item exists across multiple mobs the slot_cleared event will trigger for each mob
   if addon.lastSlotLooted == slot then return end
 
+  local frameGoldLooted = _G["DLT_Parent_GoldLooted"]
   local recordID = addon.currentRecID -- RecordID that we need to add the loot to
 
   local slotInfo = addon.currentLootTable[slot]
@@ -228,6 +228,7 @@ function recording:lootSlotCleared(_, slot)
     slotInfo.keep = true                                -- We can't sell money
     addon.lastSlotLooted = slot
     rDB:SaveNewGoldLooted(recordID, slotInfo.value)
+    frameGoldLooted:SetText(GetMoneyString(rDB:GetGoldLooted(recordID), true))
   elseif slotInfo.slotType == const.LootSlotType.Item then
     slotInfo.looted = true
     slotInfo.keep = true
@@ -236,17 +237,13 @@ function recording:lootSlotCleared(_, slot)
   end
 end
 
-function recording:lootClosed()
-  addon:Print("Loot Closed")
-end
-
 function recording:lootSlotChanged(_, slot)
-  addon:Print("recording:lootSlotChanged: ", slot)
+  --addon:Print("recording:lootSlotChanged: ", slot)
   recording:UpdateLootTable(slot)
 end
 
 function recording:lootOpened()
-  addon:Print("Loot Opened")
+  --addon:Print("Loot Opened")
   if #addon.currentLootTable == 0 then
     recording:lootReady()
   end
@@ -264,7 +261,7 @@ end
 --]]
 ---@param slot number
 function recording:UpdateLootTable(slot)
-  addon:Print("UpdateLootTable: ", slot)
+  --addon:Print("UpdateLootTable: ", slot)
 
   -- If the loot table is empty (meaning it has 0 entries/length) then we can't update anything
   if #addon.currentLootTable == 0 then return end
