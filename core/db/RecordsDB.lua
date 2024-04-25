@@ -53,6 +53,10 @@ function recordsDB:SaveNewGoldLooted(id, value)
   recordsDB.data.records[id].goldLooted = newGold
 end
 
+function recordsDB:GetGoldLooted(id)
+  return recordsDB.data.records[id].goldLooted
+end
+
 ---Returns the index position of the provided id
 ---@param id number
 ---@return number
