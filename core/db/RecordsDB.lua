@@ -43,6 +43,10 @@ function recordsDB:SaveNewItem(id, tbl)
   table.insert(recordsDB.data.records[id].items, tbl)
 end
 
+function recordsDB:GetItemTable(id)
+  return recordsDB.data.records[id].items
+end
+
 function recordsDB:SaveNewGoldLooted(id, value)
   -- Somehow we have ended up trying to add to a record that doesn't exist
   if recordsDB.data.records[id] == nil then return false end
@@ -72,6 +76,10 @@ function recordsDB:wipeRecords()
   recordsDB.data.records = {}
   recordsDB.data.totalRecordings = 0
   recordsDB.data.lastUsedID = 0
+end
+
+function recordsDB:GetLastRecordID()
+  return recordsDB.data.lastUsedID
 end
 
 --@end-do-not-package@
