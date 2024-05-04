@@ -112,7 +112,7 @@
           alphaMode="ADD" />
         <Scripts>
           <OnClick>
-              LibStub("AceEvent-3.0"):SendMessage("recording/showList")
+              LibStub("AceEvent-3.0"):SendMessage("reports/Show")
               PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
             </OnClick>
         </Scripts>
