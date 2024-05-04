@@ -510,3 +510,11 @@ function util:ParseItemLink(link)
 
   return t
 end
+
+function util:GetContainerStackCount(bag, slot)
+  local item = C_Container.GetContainerItemInfo(bag, slot)
+  if item then
+    addon:Print("item = \n", util:table_to_json(item))
+    return item.stackCount or 0
+  end
+end
