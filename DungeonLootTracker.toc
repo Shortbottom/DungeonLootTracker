@@ -59,6 +59,13 @@ Options\Recording.lua
 Options\minimap.lua
 Options\options.lua
 
+# Merchant module
+Merchant\events.lua
+Merchant\main.lua
+
+# Reports Module
+Reports\main.lua
+
 init.lua
 
 # Core.lua
