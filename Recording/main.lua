@@ -59,7 +59,7 @@ function recording:startNewRecording(x, ...)
 
   if DLT_Parent_.recording == true then return end -- In case somehow recording has started we don't want to try and start recording again
 
-  --addon:Print("Started Recording")
+  addon:Print("Started Recording")
 
   DLT_Parent_.recording = true
   startBtn:Hide()
@@ -113,7 +113,7 @@ function recording:stopRecording()
   local stopBtn = _G["DLT_Parent_StopRecordingBtn"]
   if DLT_Parent_.recording ~= true then return end -- Can't stop recording if we aren't recording in the first place
 
-  --addon:Print("Stop Recording")
+  addon:Print("Stop Recording")
   DLT_Parent_.recording = false
   startBtn:Show()
   stopBtn:Hide()
@@ -209,7 +209,8 @@ function recording:lootReady()
   end
 end
 
--- We will add the looted slot to the table
+--- TODO: Check if the item already exists in the table and if it does then update the quantity
+--- We will add the looted slot to the table
 function recording:lootSlotCleared(_, slot)
   --addon:Print("Loot Slot Cleared: ", slot)
 
