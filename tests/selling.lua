@@ -163,22 +163,7 @@ assert(db.runs[1].items[key].QtyRemaining == 6, "loading must preserve the six l
 addon.StartSelling(1); TickAll()
 assert(db.runs[1].items[key].QtySold == 6 and bag[1] == 10)
 print("Loading-screen inventory regression passed")
-Setup()
-db.runs[1].items[key].QtyRemaining = 0
-local restored = addon.RecoverRun(db.runs[1])
-assert(restored == 6 and bag[1] == 16 and money == 1000, "recovery must not sell")
-assert(db.runs[1].items[key].QtyRemaining == 6)
-addon.StartSelling(1); TickAll()
-assert(bag[1] == 10 and db.runs[1].saleIncome == 60)
-assert(addon.RecoverRun(db.runs[1]) == 0, "sold items must not be recovered again")
-Setup()
-db.runs[1].items[key].QtyRemaining = 0
-addon.UpdateInstance(info, 4)
-addon.RecordLoot("Other run loot", 5, link, 14)
-addon.UpdateInstance(nil, 6)
-assert(addon.RecoverRun(db.runs[1]) == 2, "recovery must respect quantities reserved by another run")
-assert(addon.RecoverRun({}) == nil, "deleted run cannot be recovered")
-print("Confirmed recovery quantity tests passed")
+
 Setup()
 local chatLink = "|cnIQ0:|Hitem:2783::::::::74:1467::1:1:6657:2:9:74:28:215:::::|h[Shoddy Blunderbuss]|h|r"
 local bagLink = "|cnIQ0:|Hitem:2783::::::::74:1467::1:1:6657:2:28:215:9:74:::::|h[Shoddy Blunderbuss]|h|r"

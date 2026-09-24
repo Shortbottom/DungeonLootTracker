@@ -152,27 +152,6 @@ local function Refresh()
 end
 addon.Refresh = Refresh
 
-StaticPopupDialogs.DLT_CONFIRM_RECOVER = {
-    -- Development-only recovery tool: remove before release (RELEASE_CHECKLIST.md).
-    text = "Recover sale quantities for %s? This uses recorded unsold loot and items currently in your bags. If loot was consumed or replaced, pre-existing or replacement items could become eligible for sale. Nothing is sold now. Proceed?",
-    button1 = YES,
-    button2 = NO,
-    OnAccept = function(_, run)
-        local restored, reason = addon.RecoverRun(run)
-        print("Dungeon Loot Tracker: " .. (restored and ("Recovered " .. restored .. " item(s). Check your sale filters before selling.") or reason))
-        Refresh()
-    end,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-}
-
-local function RecoverSelectedRun()
-    local run = database.runs[selectedRun or #database.runs]
-    if not run then print("Dungeon Loot Tracker: select a run first."); return end
-    StaticPopup_Show("DLT_CONFIRM_RECOVER", run.name, nil, run)
-end
-
 local function ToggleWindow()
     if not window then
         window = CreateFrame("Frame", "DungeonLootTrackerWindow", UIParent, "BasicFrameTemplateWithInset")
@@ -271,9 +250,7 @@ local function ToggleWindow()
         end)
         deleteButton:SetPoint("TOPLEFT", 112, -66)
         detailButtons[3] = deleteButton
-        local recoverButton = Button("Recover loot", 212, 110, RecoverSelectedRun)
-        recoverButton:SetPoint("TOPLEFT", 212, -66)
-        detailButtons[4] = recoverButton
+
         previousPage = Button("Previous", 12, 95, function()
             page = math.max(1, page - 1)
             historyScroll:SetVerticalScroll(0)
@@ -422,8 +399,6 @@ SlashCmdList.DUNGEONLOOTTRACKER = function(message)
         addon.ToggleOptions()
     elseif command == "sell" and database then
         addon.StartSelling(selectedRun or #database.runs)
-    elseif command == "recover" and database then
-        RecoverSelectedRun()
     elseif command == "stop" and database then
         print(addon.Stop(time()) and "Dungeon Loot Tracker: recording stopped until your next visit."
             or "Dungeon Loot Tracker: no recording is active.")

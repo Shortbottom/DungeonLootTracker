@@ -30,7 +30,7 @@ duration, and total earned (looted money plus confirmed sales). The fixed footer
 shows total earnings across all recorded runs, regardless of the current page.
 Click a row to view entry time, difficulty, and
 its loot and sale history; use **Back to runs** to return to the list. Sell,
-Delete, and Recover actions are shown in the selected run's detail view.
+and Delete actions are shown in the selected run's detail view.
 **Delete run** removes the displayed record and its loot and sale history. If it
 was the current run, recording stays stopped until you click Start run or enter
 another visit. Deletion is unavailable during a sale pass.
@@ -92,17 +92,9 @@ cannot be reconstructed. History has no automatic deletion limit.
 
 ## Commands
 
-If an older version incorrectly retired loot during a loading screen, select the
-affected run and use **Recover loot** or `/dlt recover`. The confirmation warns
-that consumed or replaced loot cannot be distinguished from pre-existing items.
-Recovery restores at most the recorded unsold amount currently in the bags,
-excluding quantities reserved for other runs. It does not sell anything or
-change filters. Verify the record and filters before selling recovered loot.
-
 - `/dlt` or `/dungeonloottracker`: toggle history.
 - `/dlt stop`: finish the current recording.
 - `/dlt sell`: sell eligible loot from the selected completed run.
-- `/dlt recover`: confirm recovery of the selected completed run's sale quantities.
 - `/dlt options`: open auto-sell and filter options.
 - `/dlt clear`: show a Yes/No confirmation to delete all recorded data while
   preserving options. Yes also clears the old recordings database; No or Escape cancels.

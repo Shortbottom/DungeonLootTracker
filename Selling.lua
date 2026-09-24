@@ -248,28 +248,3 @@ end
 function addon.SellingBusy()
     return queue ~= nil
 end
-
-function addon.RecoverRun(run)
-    if not inventoryReady then return nil, "Wait for bag contents to finish loading." end
-    if queue then return nil, "Wait for selling to finish." end
-    local found = false
-    for _, record in ipairs(addon.db.runs) do if record == run then found = true; break end end
-    if not found then return nil, "That run no longer exists." end
-    if not run.endedAt then return nil, "Stop the recording before recovering loot." end
-    local counts = addon.BagSnapshot()
-    addon.ReconcileBags(counts)
-    local restored = 0
-    for key, item in pairs(run.items) do
-        local reserved = 0
-        for _, other in ipairs(addon.db.runs) do
-            if other ~= run and other.items[key] then reserved = reserved + other.items[key].QtyRemaining end
-        end
-        local available = math.max(0, (counts[key] or 0) - reserved)
-        local recoverable = math.min(math.max(0, item.looted - item.QtySold), available)
-        if item.isSold ~= 1 and recoverable > item.QtyRemaining then
-            restored = restored + recoverable - item.QtyRemaining
-            item.QtyRemaining = recoverable
-        end
-    end
-    return restored
-end
