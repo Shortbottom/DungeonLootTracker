@@ -131,21 +131,20 @@ local function Refresh()
             math.floor(duration / 60) % 60, duration % 60, run.endReason == "interrupted" and " (incomplete)" or "")
         lines[#lines + 1] = "Looted money: " .. Money(run.money) .. " | Sales: " .. Money(run.saleIncome)
         lines[#lines + 1] = "Total earned: " .. Money(run.money + run.saleIncome)
-        if run.unparsedMoney then lines[#lines + 1] = "Some money messages could not be totaled; see the log below." end
+        if run.unparsedMoney then lines[#lines + 1] = "Some money messages could not be included in the total." end
+        local itemCount = 0
         for _, loot in ipairs(run.loot) do
-            lines[#lines + 1] = date("%H:%M:%S", loot.time) .. " " .. loot.message
+            -- Older saved runs mixed coin messages into the loot log.
+            if addon.ItemKey(loot.message) then
+                lines[#lines + 1] = date("%H:%M:%S", loot.time) .. " " .. loot.message
+                itemCount = itemCount + 1
+            end
         end
-        if #run.loot == 0 then lines[#lines + 1] = "No loot recorded." end
+        if itemCount == 0 then lines[#lines + 1] = "No items recorded." end
         for _, sale in ipairs(run.sales) do
             lines[#lines + 1] = "Sold " .. sale.link .. " x" .. sale.count .. " for " .. Money(sale.copper)
         end
         lines[#lines + 1] = " "
-    end
-    if #database.entries > 0 then lines[#lines + 1] = "Legacy loot (not assigned to runs)" end
-    for index = #database.entries, 1, -1 do
-        local entry = database.entries[index]
-        lines[#lines + 1] = date("%d %b %H:%M", entry.time) .. " - " .. entry.dungeon
-            .. "\n" .. entry.message
     end
     logText:SetText(#lines > 0 and table.concat(lines, "\n\n")
         or "Dungeon and raid visits will be recorded automatically.")
@@ -153,10 +152,35 @@ local function Refresh()
 end
 addon.Refresh = Refresh
 
+StaticPopupDialogs.DLT_CONFIRM_RECOVER = {
+    -- Development-only recovery tool: remove before release (RELEASE_CHECKLIST.md).
+    text = "Recover sale quantities for %s? This uses recorded unsold loot and items currently in your bags. If loot was consumed or replaced, pre-existing or replacement items could become eligible for sale. Nothing is sold now. Proceed?",
+    button1 = YES,
+    button2 = NO,
+    OnAccept = function(_, run)
+        local restored, reason = addon.RecoverRun(run)
+        print("Dungeon Loot Tracker: " .. (restored and ("Recovered " .. restored .. " item(s). Check your sale filters before selling.") or reason))
+        Refresh()
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+}
+
+local function RecoverSelectedRun()
+    local run = database.runs[selectedRun or #database.runs]
+    if not run then print("Dungeon Loot Tracker: select a run first."); return end
+    StaticPopup_Show("DLT_CONFIRM_RECOVER", run.name, nil, run)
+end
+
 local function ToggleWindow()
     if not window then
         window = CreateFrame("Frame", "DungeonLootTrackerWindow", UIParent, "BasicFrameTemplateWithInset")
-        window:SetSize(500, 400)
+        window:SetResizable(true)
+        window:SetResizeBounds(620, 440)
+        local size = database.options.windowSize
+        window:SetSize(size and math.max(620, tonumber(size.width) or 620) or 620,
+            size and math.max(440, tonumber(size.height) or 440) or 440)
         local position = database.options.windowPosition
         if position and type(position.x) == "number" and type(position.y) == "number" then
             window:SetPoint("CENTER", UIParent, "CENTER", position.x, position.y)
@@ -214,10 +238,15 @@ local function ToggleWindow()
             button:SetScript("OnClick", onClick)
             return button
         end
-        Button("Older", 12, 65, function() selectedRun = math.max(1, (selectedRun or #database.runs) - 1); Refresh() end)
-        Button("Newer", 80, 65, function() selectedRun = math.min(#database.runs, (selectedRun or 0) + 1); Refresh() end)
-        Button("Sell loot", 148, 95, function() addon.StartSelling(selectedRun) end)
-        recordingButton = Button("Start run", 246, 95, function()
+        detailButtons[1] = Button("Back to runs", 12, 110, function()
+            detailView = false
+            historyScroll:SetVerticalScroll(0)
+            Refresh()
+        end)
+        local sellButton = Button("Sell loot", 12, 95, function() addon.StartSelling(selectedRun) end)
+        sellButton:SetPoint("TOPLEFT", 12, -66)
+        detailButtons[2] = sellButton
+        recordingButton = Button("Start run", 390, 95, function()
             if addon.IsRecording() then
                 addon.Stop(time())
                 selectedRun = database.currentRun
@@ -228,20 +257,66 @@ local function ToggleWindow()
             end
             Refresh()
         end)
-        Button("Options", 344, 95, addon.ToggleOptions)
-        local deleteButton = Button("Delete run", 12, 95, function()
+        Button("Options", 488, 95, addon.ToggleOptions)
+        local deleteButton = Button("Delete run", 112, 95, function()
             if addon.SellingBusy() then
                 print("Dungeon Loot Tracker: wait for selling to finish before deleting a run.")
                 return
             end
             if addon.DeleteRun(selectedRun, time()) then
-                selectedRun = math.max(1, math.min(selectedRun, #database.runs))
+                selectedRun, detailView = nil, false
+                historyScroll:SetVerticalScroll(0)
                 Refresh()
             end
         end)
-        deleteButton:SetPoint("TOPLEFT", 12, -66)
+        deleteButton:SetPoint("TOPLEFT", 112, -66)
+        detailButtons[3] = deleteButton
+        local recoverButton = Button("Recover loot", 212, 110, RecoverSelectedRun)
+        recoverButton:SetPoint("TOPLEFT", 212, -66)
+        detailButtons[4] = recoverButton
+        previousPage = Button("Previous", 12, 95, function()
+            page = math.max(1, page - 1)
+            historyScroll:SetVerticalScroll(0)
+            Refresh()
+        end)
+        previousPage:ClearAllPoints()
+        previousPage:SetPoint("BOTTOMLEFT", 16, 38)
+        nextPage = Button("Next", 112, 95, function()
+            page = page + 1
+            historyScroll:SetVerticalScroll(0)
+            Refresh()
+        end)
+        nextPage:ClearAllPoints()
+        nextPage:SetPoint("BOTTOMRIGHT", -34, 38)
+        pageLabel = window:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        pageLabel:SetPoint("BOTTOM", 0, 44)
+        totalLabel = window:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+        totalLabel:SetPoint("BOTTOMLEFT", 16, 14)
+        local resize = CreateFrame("Button", nil, window)
+        resize:SetSize(20, 20)
+        resize:SetPoint("BOTTOMRIGHT", -2, 2)
+        resize:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+        resize:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+        resize:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+        resize:SetScript("OnMouseDown", function(_, button)
+            if button == "LeftButton" then window:StartSizing("BOTTOMRIGHT") end
+        end)
+        resize:SetScript("OnMouseUp", function(_, button)
+            if button ~= "LeftButton" then return end
+            window:StopMovingOrSizing()
+            database.options.windowSize = { width = window:GetWidth(), height = window:GetHeight() }
+            local x, y = window:GetCenter()
+            local parentX, parentY = UIParent:GetCenter()
+            database.options.windowPosition = { x = x - parentX, y = y - parentY }
+        end)
+        window:SetScript("OnSizeChanged", Refresh)
         table.insert(UISpecialFrames, "DungeonLootTrackerWindow")
         window:Hide()
+    end
+    if not window:IsShown() then
+        detailView = false
+        page = 1
+        historyScroll:SetVerticalScroll(0)
     end
     window:SetShown(not window:IsShown())
 end

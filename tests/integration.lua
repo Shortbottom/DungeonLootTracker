@@ -15,9 +15,15 @@ for i = 0, 4 do _G["ITEM_QUALITY" .. i .. "_DESC"] = "Quality " .. i end
 local methods = {}
 function UIParent:GetCenter() return 960, 540 end
 for _, name in ipairs({"SetSize", "SetPoint", "SetMovable", "SetClampedToScreen", "EnableMouse", "RegisterForDrag",
-    "SetWidth", "SetHeight", "SetJustifyH", "SetJustifyV", "SetScrollChild", "StartMoving", "StopMovingOrSizing"}) do
+    "SetWidth", "SetHeight", "SetJustifyH", "SetJustifyV", "SetScrollChild", "StartMoving", "StopMovingOrSizing",
+    "SetHighlightTexture", "SetVerticalScroll", "SetAllPoints", "SetColorTexture", "SetWordWrap", "SetResizable",
+    "SetResizeBounds", "SetNormalTexture", "SetPushedTexture", "StartSizing", "ClearAllPoints"}) do
     methods[name] = function() end
 end
+function methods:SetSize(width, height) self.width, self.height = width, height end
+function methods:GetWidth() return self.width end
+function methods:GetHeight() return self.height end
+function methods:SetEnabled(enabled) self.enabled = enabled end
 function methods:SetPoint(...) self.anchor = {...} end
 function methods:GetCenter() return 1160, 440 end
 function methods:SetScript(event, fn) self.scripts[event] = fn end
@@ -41,6 +47,7 @@ function methods:CreateFontString()
     fontStrings[#fontStrings + 1] = widget
     return widget
 end
+function methods:CreateTexture() return Widget() end
 function CreateFrame(_, name, _, template)
     local frame = Widget()
     if template == "BasicFrameTemplateWithInset" then frame.TitleText = Widget() end
@@ -62,10 +69,17 @@ SlashCmdList.DUNGEONLOOTTRACKER("")
 assert(DungeonLootTrackerWindow:IsShown())
 DungeonLootTrackerWindow.scripts.OnDragStop(DungeonLootTrackerWindow)
 assert(DLTMinimalDB.options.windowPosition.x == 200 and DLTMinimalDB.options.windowPosition.y == -100)
-local recordingButton, olderButton
+local recordingButton, backButton
 for _, frame in ipairs(frames) do
     if frame.value == "Start run" then recordingButton = frame end
-    if frame.value == "Older" then olderButton = frame end
+    if frame.value == "Back to runs" then backButton = frame end
+end
+local function SelectRun(index)
+    if backButton:IsShown() then backButton.scripts.OnClick() end
+    for _, frame in ipairs(frames) do
+        if frame.runIndex == index and frame:IsShown() then frame.scripts.OnClick(frame); return frame end
+    end
+    error("Missing run row " .. index)
 end
 assert(recordingButton)
 recordingButton.scripts.OnClick()
@@ -78,16 +92,37 @@ Emit("CHAT_MSG_LOOT", string.format(LOOT_ITEM_SELF_MULTIPLE, link, 6), nil,nil,n
 assert(#DLTMinimalDB.runs[1].loot == 0)
 Emit("CHAT_MSG_LOOT", string.format(LOOT_ITEM_SELF_MULTIPLE, link, 6), nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,"player")
 Emit("CHAT_MSG_MONEY", "You loot 2 Gold")
-assert(DLTMinimalDB.runs[1].money == 20000 and #DLTMinimalDB.runs[1].loot == 2)
+assert(DLTMinimalDB.runs[1].money == 20000 and #DLTMinimalDB.runs[1].loot == 1)
+-- Legacy coin messages must also stay out of the item detail view.
+DLTMinimalDB.runs[1].loot[2] = {time=100, message="You loot 2 Gold"}
 now, kind = 190, "none"
 Emit("PLAYER_ENTERING_WORLD", false, false)
 assert(DLTMinimalDB.runs[1].endedAt == 190)
+local row = SelectRun(1)
+local sellButton
+for _, frame in ipairs(frames) do
+    if frame.value == "Sell loot" then sellButton = frame end
+end
+assert(sellButton.enabled, "unsold loot enables selling even when filtered")
+local trackedItem = DLTMinimalDB.runs[1].items[addon.ItemKey(link)]
+trackedItem.isSold = 1
+addon.Refresh()
+assert(not sellButton.enabled, "fully sold run disables the sell button")
+trackedItem.isSold = 0
+trackedItem.QtyRemaining = 0
+addon.Refresh()
+assert(sellButton.enabled, "unsold flag keeps button usable even without eligible quantity")
+trackedItem.QtyRemaining = 6
+assert(row.nameLabel.value == "Test Dungeon" and row.durationLabel.value == "00:01:30")
+assert(row.earnedLabel.value == "2g 0s 0c")
 assert(fontStrings[1].value:find("Duration: 00:01:30", 1, true))
 assert(fontStrings[1].value:find("Total earned: 2g 0s 0c", 1, true))
+assert(not fontStrings[1].value:find("You loot 2 Gold", 1, true))
+assert(fontStrings[1].value:find("Wool Cloth", 1, true))
 assert(recordingButton.value == "Start run")
 kind, now = "party", 200
 Emit("PLAYER_ENTERING_WORLD", false, false)
-olderButton.scripts.OnClick()
+SelectRun(1)
 assert(recordingButton.value == "Stop run")
 now = 210
 recordingButton.scripts.OnClick()
@@ -108,16 +143,17 @@ for _, frame in ipairs(frames) do
 end
 assert(deleteButton)
 deleteButton.scripts.OnClick()
-assert(#DLTMinimalDB.runs == 2 and fontStrings[1].value:find("Run 2 / 2", 1, true))
+assert(#DLTMinimalDB.runs == 2 and not backButton:IsShown())
 kind, now = "party", 240
 Emit("PLAYER_ENTERING_WORLD", false, false)
+SelectRun(3)
 deleteButton.scripts.OnClick()
 assert(#DLTMinimalDB.runs == 2 and recordingButton.value == "Start run")
 Emit("CHAT_MSG_MONEY", "You loot 2 Gold")
 assert(#DLTMinimalDB.runs == 2, "deleted active run must not restart from loot")
 recordingButton.scripts.OnClick()
 assert(#DLTMinimalDB.runs == 3 and recordingButton.value == "Stop run")
-olderButton.scripts.OnClick()
+SelectRun(2)
 deleteButton.scripts.OnClick()
 assert(#DLTMinimalDB.runs == 2 and DLTMinimalDB.currentRun == 2 and addon.IsRecording())
 SlashCmdList.DUNGEONLOOTTRACKER("options")
@@ -132,7 +168,7 @@ end
 assert(count == 10 and DLTMinimalDB.options.autoSell == true)
 local unlimitedCheck
 for _, frame in ipairs(frames) do
-    if frame.Text and frame.Text.value == "Allow more than 11 sales per visit" then unlimitedCheck = frame end
+    if frame.Text and frame.Text.value == "Allow more than 11 sales per batch" then unlimitedCheck = frame end
 end
 assert(unlimitedCheck and not DLTMinimalDB.options.unlimitedSales)
 unlimitedCheck:SetChecked(true); unlimitedCheck.scripts.OnClick(unlimitedCheck)
@@ -203,10 +239,53 @@ kind = "party"
 Emit("PLAYER_ENTERING_WORLD", false, false)
 assert(DungeonLootTrackerWindow:IsShown(), "auto-open on dungeon entry")
 -- Recreate the addon UI with the saved database, as after a reload.
+DungeonLootTrackerWindow:SetSize(800, 600)
+for _, frame in ipairs(frames) do
+    if frame.scripts.OnMouseUp then frame.scripts.OnMouseUp(frame, "LeftButton") end
+end
+assert(DLTMinimalDB.options.windowSize.width == 800 and DLTMinimalDB.options.windowSize.height == 600)
 assert(loadfile("Main.lua"))("DungeonLootTracker", addon)
 events = frames[#frames]
 Emit("ADDON_LOADED", "DungeonLootTracker")
 SlashCmdList.DUNGEONLOOTTRACKER("")
 local anchor = DungeonLootTrackerWindow.anchor
 assert(anchor[1] == "CENTER" and anchor[2] == UIParent and anchor[4] == 200 and anchor[5] == -100)
+assert(DungeonLootTrackerWindow:GetWidth() == 800 and DungeonLootTrackerWindow:GetHeight() == 600)
+DLTMinimalDB.runs = {}
+for index = 1, 23 do
+    DLTMinimalDB.runs[index] = {name="Run " .. index, enteredAt=100, endedAt=160,
+        leftAt=160, endReason="left", difficultyName="Normal", instanceType="party",
+        money=100, saleIncome=200, loot={}, sales={}, items={}}
+end
+addon.Refresh()
+local nextPage, previousPage, footer, pageText
+for _, frame in ipairs(frames) do
+    if frame.value == "Next" then nextPage = frame end
+    if frame.value == "Previous" then previousPage = frame end
+end
+for _, label in ipairs(fontStrings) do
+    if label.value and label.value:find("Total earned across all runs:", 1, true) then footer = label end
+    if label.value and label.value:find("Page ", 1, true) then pageText = label end
+end
+local function VisibleRows()
+    local rows = {}
+    -- Old mocked UI frames belong to the earlier simulated session.
+    for _, frame in ipairs(frames) do
+        if frame.runIndex and frame:IsShown() and frame:GetHeight() == 24 then rows[#rows + 1] = frame end
+    end
+    return rows
+end
+-- Hide rows from the first simulated session before counting the new window.
+for _, frame in ipairs(frames) do
+    if frame.runIndex and frame.nameLabel.value == "Test Dungeon" then frame:Hide() end
+end
+assert(#VisibleRows() == 10 and not previousPage.enabled and nextPage.enabled)
+assert(footer.value == "Total earned across all runs: 0g 69s 0c")
+nextPage.scripts.OnClick()
+assert(#VisibleRows() == 10 and pageText.value == "Page 2 / 3")
+nextPage.scripts.OnClick()
+assert(#VisibleRows() == 3 and not nextPage.enabled and pageText.value == "Page 3 / 3")
+assert(footer.value == "Total earned across all runs: 0g 69s 0c", "footer must include other pages")
+previousPage.scripts.OnClick()
+assert(#VisibleRows() == 10 and pageText.value == "Page 2 / 3")
 print("Event routing, history UI, timing, options, and saved position tests passed")
