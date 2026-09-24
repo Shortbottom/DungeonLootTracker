@@ -422,6 +422,8 @@ SlashCmdList.DUNGEONLOOTTRACKER = function(message)
         addon.ToggleOptions()
     elseif command == "sell" and database then
         addon.StartSelling(selectedRun or #database.runs)
+    elseif command == "recover" and database then
+        RecoverSelectedRun()
     elseif command == "stop" and database then
         print(addon.Stop(time()) and "Dungeon Loot Tracker: recording stopped until your next visit."
             or "Dungeon Loot Tracker: no recording is active.")

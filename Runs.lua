@@ -179,7 +179,11 @@ function addon.RecordMoney(amount, message, now)
     if not run or run.endedAt then return end
     run.money = run.money + (amount or 0)
     if not amount then run.unparsedMoney = (run.unparsedMoney or 0) + 1 end
-    run.loot[#run.loot + 1] = { time = now, message = message }
+    -- Keep money separate from the item log; retain unparsed messages for diagnosis.
+    if not amount then
+        run.unparsedMoneyMessages = run.unparsedMoneyMessages or {}
+        run.unparsedMoneyMessages[#run.unparsedMoneyMessages + 1] = { time = now, message = message }
+    end
     run.lastSeenAt = now
 end
 
