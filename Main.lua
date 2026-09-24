@@ -2,6 +2,12 @@ local addonName, addon = ...
 local window, logText, logContent, database
 local selectedRun
 local recordingButton
+local detailView = false
+local runRows, detailButtons = {}, {}
+local listHeader, historyScroll
+local page, PAGE_SIZE = 1, 10
+local previousPage, nextPage, pageLabel, totalLabel
+local columnLabels = {}
 
 local function Money(copper)
     return string.format("%dg %ds %dc", math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100)
@@ -9,6 +15,11 @@ end
 
 local function Timestamp(value)
     return date("%d %b %Y %H:%M:%S", value)
+end
+
+local function Duration(run)
+    local seconds = math.max(0, (run.endedAt or time()) - run.enteredAt)
+    return string.format("%02d:%02d:%02d", math.floor(seconds / 3600), math.floor(seconds / 60) % 60, seconds % 60)
 end
 
 local function CurrentInstance()
@@ -20,7 +31,87 @@ end
 
 local function Refresh()
     if not logText or not database then return end
+    local contentWidth = window:GetWidth() - 60
+    logContent:SetWidth(contentWidth)
+    logText:SetWidth(contentWidth)
+    listHeader:SetWidth(contentWidth)
+    columnLabels[2]:SetPoint("TOPLEFT", contentWidth - 256, 0)
+    columnLabels[3]:SetPoint("TOPLEFT", contentWidth - 156, 0)
+    local total = 0
+    for _, run in ipairs(database.runs) do total = total + run.money + run.saleIncome end
+    totalLabel:SetText("Total earned across all runs: " .. Money(total))
+    local pageCount = math.max(1, math.ceil(#database.runs / PAGE_SIZE))
+    page = math.min(page, pageCount)
+    pageLabel:SetText("Page " .. page .. " / " .. pageCount)
+    previousPage:SetEnabled(page > 1)
+    nextPage:SetEnabled(page < pageCount)
+    previousPage:SetShown(not detailView)
+    nextPage:SetShown(not detailView)
+    pageLabel:SetShown(not detailView)
     if recordingButton then recordingButton:SetText(addon.IsRecording() and "Stop run" or "Start run") end
+    if detailView and not database.runs[selectedRun] then detailView = false end
+    for _, button in ipairs(detailButtons) do button:SetShown(detailView) end
+    local displayedRun = database.runs[selectedRun]
+    local hasUnsoldItems = false
+    if displayedRun then
+        for _, item in pairs(displayedRun.items) do
+            if item.isSold ~= 1 then hasUnsoldItems = true; break end
+        end
+    end
+    detailButtons[2]:SetEnabled(hasUnsoldItems)
+    listHeader:SetShown(not detailView)
+    for _, row in ipairs(runRows) do row:Hide() end
+    if not detailView then
+        logText:SetText(#database.runs == 0 and "No runs recorded yet. Enter a dungeon or raid to begin." or "")
+        local firstIndex = #database.runs - (page - 1) * PAGE_SIZE
+        local lastIndex = math.max(1, firstIndex - PAGE_SIZE + 1)
+        for index = firstIndex, lastIndex, -1 do
+            local rowNumber = firstIndex - index + 1
+            local row = runRows[rowNumber]
+            if not row then
+                row = CreateFrame("Button", nil, logContent)
+                row:SetSize(contentWidth, 24)
+                row:SetPoint("TOPLEFT", 0, -(rowNumber - 1) * 24)
+                local background = row:CreateTexture(nil, "BACKGROUND")
+                background:SetAllPoints()
+                if rowNumber % 2 == 0 then
+                    background:SetColorTexture(0.18, 0.18, 0.18, 0.8)
+                else
+                    background:SetColorTexture(0.05, 0.05, 0.05, 0.8)
+                end
+                row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+                local function Label(x, y, width, font)
+                    local label = row:CreateFontString(nil, "OVERLAY", font)
+                    label:SetPoint("TOPLEFT", x, y)
+                    label:SetWidth(width)
+                    label:SetJustifyH("LEFT")
+                    label:SetWordWrap(false)
+                    return label
+                end
+                row.nameLabel = Label(4, -5, 290, "GameFontNormal")
+                row.durationLabel = Label(304, -5, 90, "GameFontHighlight")
+                row.earnedLabel = Label(404, -5, 152, "GameFontHighlight")
+                row:SetScript("OnClick", function(self)
+                    selectedRun, detailView = self.runIndex, true
+                    historyScroll:SetVerticalScroll(0)
+                    Refresh()
+                end)
+                runRows[rowNumber] = row
+            end
+            local run = database.runs[index]
+            row:SetWidth(contentWidth)
+            row.nameLabel:SetWidth(contentWidth - 270)
+            row.durationLabel:SetPoint("TOPLEFT", contentWidth - 256, -5)
+            row.earnedLabel:SetPoint("TOPLEFT", contentWidth - 156, -5)
+            row.runIndex = index
+            row.nameLabel:SetText(run.name)
+            row.durationLabel:SetText(Duration(run))
+            row.earnedLabel:SetText(Money(run.money + run.saleIncome))
+            row:SetShown(true)
+        end
+        logContent:SetHeight(math.max(24, (firstIndex - lastIndex + 1) * 24))
+        return
+    end
     local lines = {}
     selectedRun = selectedRun or #database.runs
     local index = selectedRun
@@ -88,17 +179,27 @@ local function ToggleWindow()
         window.TitleText:SetText("Dungeon Loot Tracker")
 
         local scroll = CreateFrame("ScrollFrame", nil, window, "UIPanelScrollFrameTemplate")
+        historyScroll = scroll
         scroll:SetPoint("TOPLEFT", 16, -106)
-        scroll:SetPoint("BOTTOMRIGHT", -34, 16)
+        scroll:SetPoint("BOTTOMRIGHT", -34, 72)
         local content = CreateFrame("Frame", nil, scroll)
         logContent = content
-        content:SetSize(440, 1)
+        content:SetSize(560, 1)
         scroll:SetScrollChild(content)
         logText = content:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
         logText:SetPoint("TOPLEFT")
-        logText:SetWidth(440)
+        logText:SetWidth(560)
         logText:SetJustifyH("LEFT")
         logText:SetJustifyV("TOP")
+        listHeader = CreateFrame("Frame", nil, window)
+        listHeader:SetPoint("TOPLEFT", 16, -78)
+        listHeader:SetSize(560, 20)
+        for index, column in ipairs({ {"Dungeon / Raid", 4}, {"Duration", 304}, {"Total earned", 404} }) do
+            local label = listHeader:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+            label:SetPoint("TOPLEFT", column[2], 0)
+            label:SetText(column[1])
+            columnLabels[index] = label
+        end
         window:SetScript("OnShow", Refresh)
         local elapsed = 0
         window:SetScript("OnUpdate", function(_, delta)
@@ -180,8 +281,8 @@ events:SetScript("OnEvent", function(_, event, ...)
         local initialLogin, reloading = ...
         local previousRunCount = #database.runs
         addon.UpdateInstance(CurrentInstance(), time(), event == "PLAYER_ENTERING_WORLD" and initialLogin and not reloading)
-        addon.BagsChanged()
-        selectedRun = #database.runs
+        addon.InventoryAvailable()
+        if not detailView then selectedRun = nil end
         Refresh()
         if database.options.autoOpen and #database.runs > previousRunCount and (not window or not window:IsShown()) then
             ToggleWindow()
@@ -226,6 +327,7 @@ StaticPopupDialogs.DLT_CONFIRM_CLEAR = {
         database.suppressedInstance = CurrentInstance()
         addon.BagsChanged()
         selectedRun = nil
+        detailView = false
         addon.HideOptions()
         Refresh()
         print("Dungeon Loot Tracker: all recorded data cleared. Options unchanged.")
