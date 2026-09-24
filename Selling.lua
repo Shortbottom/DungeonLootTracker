@@ -21,19 +21,58 @@ function addon.BagSnapshot()
     return counts, slots
 end
 
+function addon.InventoryUnavailable()
+    worldAvailable = false
+    inventoryReady = false
+    if inventoryTimer then inventoryTimer:Cancel(); inventoryTimer = nil end
+end
+
+function addon.InventoryAvailable()
+    worldAvailable = true
+    if inventoryTimer then inventoryTimer:Cancel() end
+    inventoryReady = false
+    local previous, attempts = nil, 0
+    inventoryTimer = C_Timer.NewTicker(0.25, function()
+        attempts = attempts + 1
+        local counts = addon.BagSnapshot()
+        local stable = previous ~= nil and C_Container.GetContainerNumSlots(0) > 0
+        -- A wholly empty snapshot after previously populated bags is not enough
+        -- evidence to retire saved loot during startup or a loading screen.
+        if not next(counts) and next(addon.db.bagCounts) then stable = false end
+        if stable then
+            for key, count in pairs(counts) do if previous[key] ~= count then stable = false; break end end
+            for key, count in pairs(previous) do if counts[key] ~= count then stable = false; break end end
+        end
+        previous = counts
+        if stable or attempts >= 8 then
+            inventoryTimer:Cancel()
+            inventoryTimer = nil
+            if stable then
+                inventoryReady = true
+                if not pending then addon.ReconcileBags(counts) end
+                if merchantOpen and addon.db.options.autoSell then addon.StartSelling() end
+            end
+        end
+    end)
+end
+
 function addon.SaleAllowed(slot, options)
     local info = slot.info
-    if info.isLocked or info.hasNoValue or info.hasLoot or not options.qualities[info.quality] then return end
+    if info.isLocked then return nil, "locked" end
+    if info.hasNoValue then return nil, "no vendor value" end
+    if info.hasLoot then return nil, "contains loot" end
+    if not options.qualities[info.quality] then return nil, "quality filter" end
     local quest = C_Container.GetContainerItemQuestInfo(slot.bag, slot.slot)
-    if quest and (quest.isQuestItem or quest.questID) then return end
+    if quest and (quest.isQuestItem or quest.questID) then return nil, "quest item" end
     local purchase = C_Container.GetContainerItemPurchaseInfo(slot.bag, slot.slot, false)
-    if purchase and purchase.refundSeconds > 0 then return end
-    if C_Container.GetContainerItemEquipmentSetInfo(slot.bag, slot.slot) then return end
+    if purchase and purchase.refundSeconds > 0 then return nil, "refundable" end
+    if C_Container.GetContainerItemEquipmentSetInfo(slot.bag, slot.slot) then return nil, "equipment set" end
     local values = { C_Item.GetItemInfo(info.hyperlink) }
     local price, class, reagent = values[11], values[12], values[17]
-    if not price or price <= 0 then return end
-    if options.keepEquipment and (class == 2 or class == 4) then return end
-    if options.keepReagents and reagent then return end
+    if not price then return nil, "item data not loaded" end
+    if price <= 0 then return nil, "no vendor value" end
+    if options.keepEquipment and (class == 2 or class == 4) then return nil, "keep weapons/armor" end
+    if options.keepReagents and reagent then return nil, "keep reagents" end
     return price
 end
 
@@ -57,6 +96,7 @@ local function Finish(message)
 end
 
 local function Advance()
+    if not inventoryReady then return end
     local counts, slots = addon.BagSnapshot()
     if pending then
         local p = pending
@@ -160,7 +200,7 @@ function addon.MerchantShown()
         if not merchantOpen or not addon.db.options.autoSell or ready or attempts >= 20 then
             merchantReadyTimer:Cancel()
             merchantReadyTimer = nil
-            if merchantOpen and addon.db.options.autoSell and ready then addon.StartSelling() end
+            if merchantOpen and addon.db.options.autoSell and ready and inventoryReady then addon.StartSelling() end
         end
     end)
 end
@@ -172,9 +212,38 @@ function addon.MerchantClosed()
 end
 
 function addon.BagsChanged()
+    if not inventoryReady then
+        if worldAvailable and not inventoryTimer then addon.InventoryAvailable() end
+        return
+    end
     if not pending then addon.ReconcileBags(addon.BagSnapshot()) end
 end
 
 function addon.SellingBusy()
     return queue ~= nil
+end
+
+function addon.RecoverRun(run)
+    if not inventoryReady then return nil, "Wait for bag contents to finish loading." end
+    if queue then return nil, "Wait for selling to finish." end
+    local found = false
+    for _, record in ipairs(addon.db.runs) do if record == run then found = true; break end end
+    if not found then return nil, "That run no longer exists." end
+    if not run.endedAt then return nil, "Stop the recording before recovering loot." end
+    local counts = addon.BagSnapshot()
+    addon.ReconcileBags(counts)
+    local restored = 0
+    for key, item in pairs(run.items) do
+        local reserved = 0
+        for _, other in ipairs(addon.db.runs) do
+            if other ~= run and other.items[key] then reserved = reserved + other.items[key].QtyRemaining end
+        end
+        local available = math.max(0, (counts[key] or 0) - reserved)
+        local recoverable = math.min(math.max(0, item.looted - item.QtySold), available)
+        if item.isSold ~= 1 and recoverable > item.QtyRemaining then
+            restored = restored + recoverable - item.QtyRemaining
+            item.QtyRemaining = recoverable
+        end
+    end
+    return restored
 end

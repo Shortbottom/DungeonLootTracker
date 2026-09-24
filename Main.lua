@@ -149,6 +149,7 @@ local events = CreateFrame("Frame")
 events:RegisterEvent("ADDON_LOADED")
 events:RegisterEvent("CHAT_MSG_LOOT")
 events:RegisterEvent("PLAYER_ENTERING_WORLD")
+events:RegisterEvent("PLAYER_LEAVING_WORLD")
 events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 events:RegisterEvent("PLAYER_LOGOUT")
 events:RegisterEvent("CHAT_MSG_MONEY")
@@ -162,10 +163,12 @@ events:SetScript("OnEvent", function(_, event, ...)
         if type(DLTMinimalDB.entries) ~= "table" then DLTMinimalDB.entries = {} end
         database = DLTMinimalDB
         addon.Initialize(database)
+        addon.InventoryUnavailable()
         events:UnregisterEvent("ADDON_LOADED")
         return
     end
     if not database then return end
+    if event == "PLAYER_LEAVING_WORLD" then addon.InventoryUnavailable(); return end
     if event == "MERCHANT_SHOW" then addon.MerchantShown(); return end
     if event == "MERCHANT_CLOSED" then addon.MerchantClosed(); return end
     if event == "BAG_UPDATE_DELAYED" then addon.BagsChanged(); return end

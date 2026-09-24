@@ -50,6 +50,7 @@ function CreateFrame(_, name, _, template)
     return frame
 end
 C_Container = {GetContainerNumSlots=function() return 0 end}
+C_Timer = {NewTicker=function() return {Cancel=function() end} end}
 for _, path in ipairs({"Parsing.lua", "Runs.lua", "Selling.lua", "Options.lua", "Main.lua"}) do
     assert(loadfile(path))("DungeonLootTracker", addon)
 end
