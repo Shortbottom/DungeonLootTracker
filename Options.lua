@@ -3,7 +3,7 @@ local panel
 local unlimitedCheck
 
 StaticPopupDialogs.DLT_CONFIRM_UNLIMITED_SALES = {
-    text = "Allow more than 11 sales per merchant visit? Some sold items may no longer be available to buy back.",
+    text = "Allow more than 11 sales per batch? Some sold items may no longer be available to buy back.",
     button1 = YES,
     button2 = NO,
     OnAccept = function()
@@ -37,7 +37,7 @@ function addon.ToggleOptions()
             function(value) addon.db.options.autoSell = value end)
         Check("Open history when entering a dungeon or raid", function() return addon.db.options.autoOpen end,
             function(value) addon.db.options.autoOpen = value end)
-        unlimitedCheck = Check("Allow more than 11 sales per visit", function() return addon.db.options.unlimitedSales end,
+        unlimitedCheck = Check("Allow more than 11 sales per batch", function() return addon.db.options.unlimitedSales end,
             function(value)
                 if value then
                     unlimitedCheck:SetChecked(false)

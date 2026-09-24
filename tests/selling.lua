@@ -61,7 +61,11 @@ Setup()
 addon.StartSelling(1)
 TickAll()
 assert(bag[1] == 10 and not bag[2], "must preserve the 10 original cloth")
-assert(db.runs[1].items[key].sold == 6 and db.runs[1].saleIncome == 60)
+assert(db.runs[1].items[key].QtySold == 6 and db.runs[1].saleIncome == 60)
+assert(db.runs[1].items[key].isSold == 1, "confirmed full sale sets the sold flag")
+db.runs[1].items[key].isSold = nil
+addon.Initialize(db)
+assert(db.runs[1].items[key].isSold == 1, "old records infer sold status from quantities")
 addon.StartSelling(1); TickAll()
 assert(bag[1] == 10 and money == 1060, "repeat must not resell")
 
@@ -79,11 +83,12 @@ assert(bag[1] == 16, "quality filter")
 
 Setup(); failSale = true
 addon.StartSelling(1); TickAll()
-assert(db.runs[1].saleIncome == 0 and db.runs[1].items[key].sold == 0, "failed sale cannot earn money")
+assert(db.runs[1].saleIncome == 0 and db.runs[1].items[key].QtySold == 0, "failed sale cannot earn money")
+assert(db.runs[1].items[key].isSold == 0, "failed sale must not set sold flag")
 
 Setup(); noMoney = true
 addon.StartSelling(1); TickAll()
-assert(db.runs[1].saleIncome == 0 and db.runs[1].items[key].remaining == 0, "unconfirmed removal must retire eligibility")
+assert(db.runs[1].saleIncome == 0 and db.runs[1].items[key].QtyRemaining == 0, "unconfirmed removal must retire eligibility")
 
 Setup(); bag[1] = 10; addon.BagsChanged(); bag[1] = 16; addon.BagsChanged()
 addon.StartSelling(1); TickAll()
@@ -92,7 +97,7 @@ assert(bag[1] == 16, "consumed loot must not be replaced by later untracked acqu
 Setup(); addon.UpdateInstance(info, 4); addon.RecordLoot("4 Wool", 5, link, 4)
 bag[1] = 20; addon.BagsChanged(); addon.UpdateInstance(nil, 6)
 addon.StartSelling(2); TickAll()
-assert(bag[1] == 16 and db.runs[2].saleIncome == 40 and db.runs[1].items[key].remaining == 6)
+assert(bag[1] == 16 and db.runs[2].saleIncome == 40 and db.runs[1].items[key].QtyRemaining == 6)
 addon.StartSelling(1); TickAll()
 assert(bag[1] == 10 and db.runs[1].saleIncome == 60)
 
@@ -119,26 +124,82 @@ Setup()
 bag = {}
 for slot = 1, 13 do bag[slot] = 1 end
 C_Container.GetContainerNumSlots = function() return 13 end
-db.runs[1].items[key].remaining = 13
+db.runs[1].items[key].QtyRemaining = 13
 db.runs[1].items[key].looted = 13
 db.bagCounts = addon.BagSnapshot()
 db.options.autoSell = true
 addon.MerchantShown(); TickAll()
-assert(db.runs[1].items[key].sold == 11 and db.runs[1].saleIncome == 110)
-assert(db.runs[1].items[key].remaining == 2)
-addon.StartSelling(1); TickAll()
-assert(db.runs[1].items[key].sold == 11, "manual retry cannot bypass visit limit")
+assert(db.runs[1].items[key].QtySold == 11 and db.runs[1].saleIncome == 110)
+assert(db.runs[1].items[key].QtyRemaining == 2)
+assert(db.runs[1].items[key].isSold == 0, "partial sale leaves item available for next batch")
 addon.MerchantShown(); TickAll()
-assert(db.runs[1].items[key].sold == 11, "duplicate merchant event cannot reset limit")
-addon.MerchantClosed(); addon.MerchantShown(); TickAll()
-assert(db.runs[1].items[key].sold == 13 and db.runs[1].saleIncome == 130)
+assert(db.runs[1].items[key].QtySold == 11, "duplicate merchant event cannot reset limit")
+addon.StartSelling(1); TickAll()
+assert(db.runs[1].items[key].QtySold == 13 and db.runs[1].saleIncome == 130)
+assert(db.runs[1].items[key].isSold == 1, "last batch marks item fully sold")
 Setup()
 bag = {}
 for slot = 1, 13 do bag[slot] = 1 end
-db.runs[1].items[key].remaining = 13
+db.runs[1].items[key].QtyRemaining = 13
 db.runs[1].items[key].looted = 13
 db.bagCounts = addon.BagSnapshot()
 db.options.unlimitedSales = true
 addon.StartSelling(1); TickAll()
-assert(db.runs[1].items[key].sold == 13, "confirmed unlimited option bypasses the visit cap")
+assert(db.runs[1].items[key].QtySold == 13, "confirmed unlimited option bypasses the visit cap")
 print("Quantity protection, filters, sale accounting, and failure tests passed")
+-- Loading screens expose incomplete bag contents; never interpret them as losses.
+Setup()
+addon.InventoryUnavailable()
+local actualBag = bag
+bag = {}
+addon.BagsChanged()
+assert(db.runs[1].items[key].QtyRemaining == 6)
+addon.InventoryAvailable()
+clock = clock + 0.25; callback()
+bag = actualBag
+clock = clock + 0.25; callback()
+clock = clock + 0.25; callback()
+assert(db.runs[1].items[key].QtyRemaining == 6, "loading must preserve the six looted items")
+addon.StartSelling(1); TickAll()
+assert(db.runs[1].items[key].QtySold == 6 and bag[1] == 10)
+print("Loading-screen inventory regression passed")
+Setup()
+db.runs[1].items[key].QtyRemaining = 0
+local restored = addon.RecoverRun(db.runs[1])
+assert(restored == 6 and bag[1] == 16 and money == 1000, "recovery must not sell")
+assert(db.runs[1].items[key].QtyRemaining == 6)
+addon.StartSelling(1); TickAll()
+assert(bag[1] == 10 and db.runs[1].saleIncome == 60)
+assert(addon.RecoverRun(db.runs[1]) == 0, "sold items must not be recovered again")
+Setup()
+db.runs[1].items[key].QtyRemaining = 0
+addon.UpdateInstance(info, 4)
+addon.RecordLoot("Other run loot", 5, link, 14)
+addon.UpdateInstance(nil, 6)
+assert(addon.RecoverRun(db.runs[1]) == 2, "recovery must respect quantities reserved by another run")
+assert(addon.RecoverRun({}) == nil, "deleted run cannot be recovered")
+print("Confirmed recovery quantity tests passed")
+Setup()
+local chatLink = "|cnIQ0:|Hitem:2783::::::::74:1467::1:1:6657:2:9:74:28:215:::::|h[Shoddy Blunderbuss]|h|r"
+local bagLink = "|cnIQ0:|Hitem:2783::::::::74:1467::1:1:6657:2:28:215:9:74:::::|h[Shoddy Blunderbuss]|h|r"
+local oldKey = chatLink:match("|H(item:[^|]+)|h")
+db.runs[1].items = {[oldKey]={link=chatLink, looted=1, QtyRemaining =1, QtySold =0}}
+db.bagCounts = {[oldKey]=1}
+addon.Initialize(db)
+link, key = bagLink, addon.ItemKey(bagLink)
+bag = {[1]=1}
+assert(db.runs[1].items[key].QtyRemaining == 1 and db.bagCounts[key] == 1)
+addon.BagsChanged()
+addon.StartSelling(1); TickAll()
+assert(not bag[1] and db.runs[1].items[key].QtySold == 1, "existing records must sell reordered bag links")
+print("Existing-record modifier-order sale regression passed")
+local legacy = db.runs[1].items[key]
+legacy.sold, legacy.remaining = 1, 0
+legacy.QtySold, legacy.QtyRemaining = nil, nil
+addon.Initialize(db)
+assert(legacy.QtySold == 1 and legacy.QtyRemaining == 0 and legacy.isSold == 1)
+assert(legacy.sold == nil and legacy.remaining == nil, "legacy fields must be removed")
+legacy.sold, legacy.remaining = 99, 99
+addon.Initialize(db)
+assert(legacy.QtySold == 1 and legacy.QtyRemaining == 0, "new quantity fields take precedence")
+assert(legacy.sold == nil and legacy.remaining == nil)

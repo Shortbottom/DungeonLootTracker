@@ -159,9 +159,16 @@ function addon.RecordLoot(message, now, link, count)
     if link and count and count > 0 then
         local key = addon.ItemKey(link)
         if key then
-            local item = run.items[key] or { link = link, looted = 0, remaining = 0, sold = 0 }
+            local item = run.items[key] or {
+                link = link,
+                looted = 0, -- Total quantity picked up during this run.
+                QtyRemaining = 0, -- Tracked quantity still available for sale, subject to filters.
+                QtySold = 0, -- Quantity confirmed sold through the addon for this run.
+                isSold = 0, -- 1 when the full looted quantity has been sold; otherwise 0.
+            }
             run.items[key] = item
-            item.looted, item.remaining = item.looted + count, item.remaining + count
+            item.looted, item.QtyRemaining = item.looted + count, item.QtyRemaining + count
+            item.isSold = 0
         end
     end
     run.lastSeenAt = now
@@ -184,8 +191,8 @@ function addon.ReconcileBags(counts)
         for index = #db.runs, 1, -1 do
             local item = db.runs[index].items[key]
             if item and lost > 0 then
-                local used = math.min(item.remaining, lost)
-                item.remaining, lost = item.remaining - used, lost - used
+                local used = math.min(item.QtyRemaining, lost)
+                item.QtyRemaining, lost = item.QtyRemaining - used, lost - used
             end
         end
     end

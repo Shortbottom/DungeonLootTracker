@@ -2,7 +2,8 @@ local _, addon = ...
 local merchantOpen, queue, pending, ticker, merchantReadyTimer
 local MAX_SALES_PER_VISIT = 11
 local salesThisVisit = 0
-local SALE_LIMIT_MESSAGE = "11-sale limit reached. Check Buyback before closing and reopening the merchant to sell more."
+local inventoryReady, inventoryTimer, worldAvailable = true, nil, true
+local SALE_LIMIT_MESSAGE = "11-sale limit reached. Check Buyback, then click Sell loot to sell another batch of up to 11."
 
 function addon.BagSnapshot()
     local counts, slots = {}, {}
@@ -114,8 +115,9 @@ local function Advance()
         if removed == p.quantity and income == p.expected then
             local run = addon.db.runs[p.runID]
             local item = run.items[p.key]
-            item.remaining = math.max(0, item.remaining - p.quantity)
-            item.sold = item.sold + p.quantity
+            item.QtyRemaining = math.max(0, item.QtyRemaining - p.quantity)
+            item.QtySold = item.QtySold + p.quantity
+            item.isSold = item.QtySold >= item.looted and 1 or 0
             run.saleIncome = run.saleIncome + income
             run.sales[#run.sales + 1] = { time = time(), link = item.link, count = p.quantity, copper = income }
             -- Consume this loss before reconciling unrelated inventory changes.
@@ -139,13 +141,19 @@ local function Advance()
         return
     end
     table.sort(slots, function(a, b) return a.info.stackCount < b.info.stackCount end)
+    local skipped = {}
+    local function Skip(reason) skipped[reason] = (skipped[reason] or 0) + 1 end
     for _, runID in ipairs(queue) do
         local run = addon.db.runs[runID]
         for _, slot in ipairs(slots) do
             local item = run.items[slot.key]
-            local price = item and item.remaining > 0 and addon.SaleAllowed(slot, addon.db.options)
+            local price, reason
+            if item and item.isSold ~= 1 and item.QtyRemaining > 0 then
+                price, reason = addon.SaleAllowed(slot, addon.db.options)
+                if reason then Skip(reason) end
+            end
             if price then
-                local quantity = math.min(item.remaining, slot.info.stackCount)
+                local quantity = math.min(item.QtyRemaining, slot.info.stackCount)
                 if quantity < slot.info.stackCount then
                     local bag, target = EmptySlot()
                     if bag then
@@ -154,6 +162,7 @@ local function Advance()
                         if CursorHasItem() then C_Container.PickupContainerItem(bag, target) end
                         return
                     end
+                    Skip("no free slot to split stack")
                 else
                     pending = { phase = "sell", key = slot.key, runID = runID, quantity = quantity,
                         beforeCount = counts[slot.key], beforeMoney = GetMoney(), expected = price * quantity, started = GetTime() }
@@ -165,24 +174,41 @@ local function Advance()
             end
         end
     end
-    Finish("Sale pass complete. Filtered, unavailable, or unsplittable items were kept.")
+    local reasons = {}
+    for reason, count in pairs(skipped) do reasons[#reasons + 1] = count .. " stack(s): " .. reason end
+    table.sort(reasons)
+    Finish(#reasons > 0 and ("Sale pass finished. Kept " .. table.concat(reasons, "; ") .. ".")
+        or "Sale pass finished. No further matching, tracked items in bags.")
 end
 
 function addon.StartSelling(runID)
     if queue then return end
+    if not inventoryReady then
+        print("Dungeon Loot Tracker: waiting for bag contents to finish loading.")
+        return
+    end
     if not merchantOpen or not MerchantFrame:IsShown() then
         print("Dungeon Loot Tracker: open a merchant first.")
         return
     end
+    -- A deliberate manual click authorizes another batch; automatic retries do not.
+    if runID then salesThisVisit = 0 end
     if not addon.db.options.unlimitedSales and salesThisVisit >= MAX_SALES_PER_VISIT then
         print("Dungeon Loot Tracker: " .. SALE_LIMIT_MESSAGE)
         return
     end
     queue = { automatic = not runID }
+    local remaining = 0
     for index, run in ipairs(addon.db.runs) do
-        if run.endedAt and (not runID or runID == index) then queue[#queue + 1] = index end
+        if run.endedAt and (not runID or runID == index) then
+            queue[#queue + 1] = index
+            for _, item in pairs(run.items) do
+                if item.isSold ~= 1 then remaining = remaining + item.QtyRemaining end
+            end
+        end
     end
     if #queue == 0 then Finish("End the recording before selling its loot."); return end
+    if remaining == 0 then Finish("No recorded unsold quantities remain for this selection."); return end
     ticker = C_Timer.NewTicker(0.2, Advance)
 end
 
