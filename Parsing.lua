@@ -1,7 +1,31 @@
 local _, addon = ...
 
 function addon.ItemKey(link)
-    return link and link:match("|H(item:[^|]+)|h")
+    local key = link and (link:match("|H(item:[^|]+)|h") or link:match("^(item:[^|]+)$"))
+    if not key then return end
+    local fields = {}
+    for field in (key .. ":"):gmatch("(.-):") do fields[#fields + 1] = field end
+    -- item:ID:...:context:bonusCount:bonusIDs:modifierCount:type:value:...
+    -- The same modifier pairs can be serialized in different orders by chat and bags.
+    local bonusCount = tonumber(fields[14])
+    if not bonusCount or bonusCount < 0 or bonusCount % 1 ~= 0 then return key end
+    local countIndex = 15 + bonusCount
+    local modifierCount = tonumber(fields[countIndex])
+    if not modifierCount or modifierCount < 2 or modifierCount % 1 ~= 0
+        or countIndex + modifierCount * 2 > #fields then return key end
+    local modifiers = {}
+    for index = 1, modifierCount do
+        local offset = countIndex + (index - 1) * 2
+        modifiers[index] = { fields[offset + 1], fields[offset + 2] }
+    end
+    table.sort(modifiers, function(a, b)
+        return a[1] == b[1] and a[2] < b[2] or a[1] ~= b[1] and a[1] < b[1]
+    end)
+    for index, modifier in ipairs(modifiers) do
+        local offset = countIndex + (index - 1) * 2
+        fields[offset + 1], fields[offset + 2] = modifier[1], modifier[2]
+    end
+    return table.concat(fields, ":")
 end
 
 -- Match Blizzard's localized printf strings, including positional arguments.

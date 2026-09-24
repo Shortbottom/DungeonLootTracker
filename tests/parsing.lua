@@ -21,3 +21,8 @@ assert(addon.ParseMoney("You loot 1 234 Gold") == 12340000)
 assert(addon.ParseMoney("You loot 2 Silver (1 Gold deposited to guild bank)") == 200)
 assert(addon.ParseMoney("Unknown money message") == nil)
 print("Localized loot and money parsing tests passed")
+local chat = "item:2783::::::::74:1467::1:1:6657:2:9:74:28:215:::::"
+local bag = "item:2783::::::::74:1467::1:1:6657:2:28:215:9:74:::::"
+assert(addon.ItemKey(chat) == addon.ItemKey(bag), "modifier order must not change item identity")
+assert(addon.ItemKey(chat) ~= addon.ItemKey(bag:gsub("6657", "6658")), "bonus variants must stay distinct")
+assert(addon.ItemKey(chat) ~= addon.ItemKey(bag:gsub("28:215", "28:216")), "modifier values must stay distinct")
