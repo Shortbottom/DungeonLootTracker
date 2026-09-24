@@ -1,11 +1,15 @@
 ## Interface: 120100
 ## Version: @project-version@
 ## Title: Dungeon Loot Tracker
-## Notes: A simple log of your dungeon loot.
+## Notes: Dungeon and raid history, loot, money, and filtered vendor sales.
 ## Author: Shortbottom
 ## SavedVariables: dltDB, DLTRecordings_DB
 ## SavedVariablesPerCharacter: DLTMinimalDB
 ## X-Curse-Project-ID: 974205
 ## X-Wago-ID: nGvpze6x
 
+Parsing.lua
+Runs.lua
+Selling.lua
+Options.lua
 Main.lua
