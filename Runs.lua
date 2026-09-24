@@ -8,9 +8,35 @@ function addon.Initialize(saved)
     if db.options.autoOpen == nil then db.options.autoOpen = false end
     if db.options.unlimitedSales == nil then db.options.unlimitedSales = false end
     db.bagCounts = db.bagCounts or {}
+    local counts = {}
+    for key, count in pairs(db.bagCounts) do
+        local normalized = addon.ItemKey(key) or key
+        counts[normalized] = (counts[normalized] or 0) + count
+    end
+    db.bagCounts = counts
     for _, run in ipairs(db.runs) do
         run.items, run.sales = run.items or {}, run.sales or {}
         run.money, run.saleIncome = run.money or 0, run.saleIncome or 0
+        local items = {}
+        for key, item in pairs(run.items) do
+            if item.QtySold == nil then item.QtySold = item.sold or 0 end
+            if item.QtyRemaining == nil then item.QtyRemaining = item.remaining or 0 end
+            item.sold, item.remaining = nil, nil
+            local normalized = addon.ItemKey(key) or key
+            if items[normalized] then
+                local existing = items[normalized]
+                existing.looted = existing.looted + item.looted
+                existing.QtyRemaining = existing.QtyRemaining + item.QtyRemaining
+                existing.QtySold = existing.QtySold + item.QtySold
+            else
+                items[normalized] = item
+            end
+        end
+        run.items = items
+        for _, item in pairs(run.items) do
+            -- Older records store only the sold quantity, not the completion flag.
+            item.isSold = item.looted > 0 and item.QtySold >= item.looted and 1 or 0
+        end
     end
     addon.db = db
 end
