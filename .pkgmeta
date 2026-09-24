@@ -1,6 +1,7 @@
 package-as: DungeonLootTracker
 
 ignore:
+  - RELEASE_CHECKLIST.md
   - .github
   - .backups
   - .vscode
